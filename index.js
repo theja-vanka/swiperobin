@@ -21,6 +21,7 @@ swiperobin.prototype.init = function() {
 }
 
 swiperobin.prototype.setOriginalItemDimensions = function() {
+	console.log('setting dimenstions');
 	data.container.find('div.mycard').each(function() {
 		if($(this).data('original_width') == undefined || defaults.forcedImageWidth > 0)
 		{
