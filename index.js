@@ -85,33 +85,34 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
         index: 0,
     }
 
-    var flankdisplaycount = (defaults.flankingItems * 2) + 1;
-    var seperation = defaults.seperation;
+    var flankdisplaycount = (defaults.flankingItems * 2);
+    var seperation = $('.basecard').find('div.mycard:first').width();
     var opacity = defaults.opacityInitial;
+    var x =0;
 
     if (data.totalItems >= flankdisplaycount) {
-        for (var i = 1, j = 1; i <= flankdisplaycount; i++, parseInt((j + 1) / 2)) {
+        for (var i = 1, j = 1; i <= flankdisplaycount; i++, j=parseInt((i + 1) / 2)) {
             if (i % 2 == 1) {
+            	seperation = x + (seperation*defaults.seperationMultiplier);
+                opacity -= defaults.opacityDifference;
                 data.calculations[i] = {
                     distance: seperation,
                     opacity: opacity,
                     scale: 1,
                     index: j
                 }
-            }
-            else {
-            	data.calculation[i] = {
-            		distance: seperation,
-            		opacity: opacity,
-            		scale: 1,
-            		index: j
-            	}
-            	seperation *= defaults.separationMultiplier;
-                opacity -= defaults.opacityDifference;
+                x= seperation;
+            } else {
+                data.calculations[i] = {
+                    distance: -seperation,
+                    opacity: opacity,
+                    scale: 1,
+                    index: -j
+                }
             }
         }
     }
-
+    console.log(data.calculations);
 }
 
 swiperobin.prototype.assignValues = function() {
