@@ -15,7 +15,7 @@ var swiperobin = function() {
         containerWidth: $(this.container).width(),
         containerHeight: $(this.container).height(),
         leftItemsCount: 0,
-        rightItemsCount: 0
+        rightItemsCount: 0,
     };
     defaults = {
         startingItem: 0,
@@ -24,7 +24,7 @@ var swiperobin = function() {
         sizeMultiplier: 0.8,
         opacityInitial: 1,
         opacityDifference: 0.1,
-        flankingItems: 3,
+        flankingItems: 2,
         //animation defaults
         speed: 500,
         animationEasing: 'linear',
@@ -71,8 +71,8 @@ swiperobin.prototype.forceImageDimensionsIfEnabled = function() {
 
 swiperobin.prototype.preCalculatePositionProperties = function() {
     // The 0 index is the center item in the carousel
-    var firstItem = data.itemsContainer;
-    firstItem.css({
+    var Item = data.itemsContainer;
+    Item.css({
         'margin': 'auto',
         'display': 'block',
         'position': 'relative'
@@ -91,32 +91,47 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
     var scale = 1;
     var x = 0;
 
-    if (data.totalItems >= flankdisplaycount) {
-        for (var i = 1, j = 1; i <= flankdisplaycount; i++, j = parseInt((i + 1) / 2)) {
-            if (i % 2 == 1) {
-                seperation = x + (seperation * defaults.seperationMultiplier);
-                opacity -= defaults.opacityDifference;
-                scale *= defaults.sizeMultiplier;
-                data.calculations[i] = {
-                    distance: seperation,
-                    opacity: opacity,
-                    scale: scale,
-                    index: j
-                }
-                x = seperation;
-            } else {
-                data.calculations[i] = {
-                    distance: -seperation,
-                    opacity: opacity,
-                    scale: scale,
-                    index: -j
-                }
+    if(flankdisplaycount+1 > data.totalItems)
+    {
+    	flankdisplaycount = data.totalItems-1;
+    }
+
+    for (var i = 1, j = 1; i <= flankdisplaycount; i++, j = parseInt((i + 1) / 2)) {
+        if (i % 2 == 1) {
+            seperation = x + (seperation * defaults.seperationMultiplier);
+            opacity -= defaults.opacityDifference;
+            scale *= defaults.sizeMultiplier;
+            data.calculations[i] = {
+                distance: seperation,
+                opacity: opacity,
+                scale: scale,
+                index: j
+            }
+            x = seperation;
+        } else {
+            data.calculations[i] = {
+                distance: -seperation,
+                opacity: opacity,
+                scale: scale,
+                index: -j
             }
         }
+    }
+    for(var i = flankdisplaycount + 1 ; i<data.totalItems;i++)
+    {
+    	data.calculations[i] = {
+    		distance: 0,
+    		opacity: 0,
+    		scale: 0,
+    		index: 0
+    	}
     }
     console.log(data.calculations);
 }
 
-swiperobin.prototype.assignValues = function() {
+swiperobin.prototype.setupRobin = function() {
+	var i = 0;
+	data.itemsContainer.find('.mycard').each(function() {
 
+	});
 }
