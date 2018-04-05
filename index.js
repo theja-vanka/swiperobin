@@ -88,25 +88,27 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
     var flankdisplaycount = (defaults.flankingItems * 2);
     var seperation = $('.basecard').find('div.mycard:first').width();
     var opacity = defaults.opacityInitial;
-    var x =0;
+    var scale = 1;
+    var x = 0;
 
     if (data.totalItems >= flankdisplaycount) {
-        for (var i = 1, j = 1; i <= flankdisplaycount; i++, j=parseInt((i + 1) / 2)) {
+        for (var i = 1, j = 1; i <= flankdisplaycount; i++, j = parseInt((i + 1) / 2)) {
             if (i % 2 == 1) {
-            	seperation = x + (seperation*defaults.seperationMultiplier);
+                seperation = x + (seperation * defaults.seperationMultiplier);
                 opacity -= defaults.opacityDifference;
+                scale *= defaults.sizeMultiplier;
                 data.calculations[i] = {
                     distance: seperation,
                     opacity: opacity,
-                    scale: 1,
+                    scale: scale,
                     index: j
                 }
-                x= seperation;
+                x = seperation;
             } else {
                 data.calculations[i] = {
                     distance: -seperation,
                     opacity: opacity,
-                    scale: 1,
+                    scale: scale,
                     index: -j
                 }
             }
