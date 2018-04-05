@@ -16,15 +16,16 @@ var swiperobin = function() {
         containerHeight: $(this.container).height(),
         leftItemsCount: 0,
         rightItemsCount: 0,
+        index: 0
     };
     defaults = {
         startingItem: 0,
         seperation: 0,
-        seperationMultiplier: 0.75,
         sizeMultiplier: 0.8,
         opacityInitial: 1,
         opacityDifference: 0.1,
-        flankingItems: 2,
+        perspective: 3000, //in pixels
+        flankingItems: 3,
         //animation defaults
         speed: 500,
         animationEasing: 'linear',
@@ -41,6 +42,8 @@ var swiperobin = function() {
 swiperobin.prototype.init = function() {
     this.setOriginalItemDimensions();
     this.preCalculatePositionProperties();
+    this.setupRobin();
+    this.rotateRobin();
 }
 
 swiperobin.prototype.setOriginalItemDimensions = function() {
@@ -75,7 +78,8 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
     Item.css({
         'margin': 'auto',
         'display': 'block',
-        'position': 'relative'
+        'position': 'relative',
+        'perspective': defaults.perspective+'px'
     });
 
     data.calculations[0] = {
@@ -83,55 +87,83 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
         opacity: 1,
         scale: 1,
         index: 0,
+        zindex: 0,
     }
 
     var flankdisplaycount = (defaults.flankingItems * 2);
-    var seperation = $('.basecard').find('div.mycard:first').width();
+    var itemWidth = $('.basecard').find('div.mycard:first').width();
+    var seperationMultiplier = itemWidth / (defaults.flankingItems + 1);
     var opacity = defaults.opacityInitial;
     var scale = 1;
+    var seperation = itemWidth / 2;
     var x = 0;
 
-    if(flankdisplaycount+1 > data.totalItems)
-    {
-    	flankdisplaycount = data.totalItems-1;
+    if (flankdisplaycount + 1 > data.totalItems) {
+        flankdisplaycount = data.totalItems - 1;
     }
 
     for (var i = 1, j = 1; i <= flankdisplaycount; i++, j = parseInt((i + 1) / 2)) {
         if (i % 2 == 1) {
-            seperation = x + (seperation * defaults.seperationMultiplier);
+            x = x + seperation;
             opacity -= defaults.opacityDifference;
             scale *= defaults.sizeMultiplier;
             data.calculations[i] = {
-                distance: seperation,
+                distance: x,
                 opacity: opacity,
                 scale: scale,
-                index: j
+                index: j,
+                zindex: -j
             }
-            x = seperation;
         } else {
             data.calculations[i] = {
-                distance: -seperation,
+                distance: -x,
                 opacity: opacity,
                 scale: scale,
-                index: -j
+                index: -j,
+                zindex: -j
             }
         }
     }
-    for(var i = flankdisplaycount + 1 ; i<data.totalItems;i++)
-    {
-    	data.calculations[i] = {
-    		distance: 0,
-    		opacity: 0,
-    		scale: 0,
-    		index: 0
-    	}
+    for (var i = flankdisplaycount + 1; i < data.totalItems; i++) {
+        data.calculations[i] = {
+            distance: 0,
+            opacity: 0,
+            scale: 1,
+            index: 0,
+            zindex: -data.totalItems
+        }
     }
-    console.log(data.calculations);
+    //console.log(data.calculations);
 }
 
 swiperobin.prototype.setupRobin = function() {
-	var i = 0;
-	data.itemsContainer.find('.mycard').each(function() {
+    var i = 0;
+    data.itemsContainer.find('.mycard').each(function() {
 
-	});
+        $(this).animate({
+            left: data.calculations[i].distance,
+            position: 'absolute',
+            height: 'inherit',
+            width: 'inherit',
+            opacity: data.calculations[i].opacity,
+        }, "slow");
+        $(this).css({
+            transform: 'scale(' + data.calculations[i].scale + ')',
+            zIndex: data.calculations[i].zindex
+        });
+        i++;
+    });
+}
+
+swiperobin.prototype.rotateRobin = function() {
+    var mycard = document.querySelectorAll("div.basecard .mycard");
+    for(var i =0; i<data.totalItems; i++)
+    {(function(posi) {
+        mycard[i].onclick = function() {
+            //console.log(posi);
+            data.index = posi;
+            console.log(posi);
+        }
+    })(i);
+    }
 }
