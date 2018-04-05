@@ -1,11 +1,3 @@
-.basecard {
-    display: block;
-    height: 370px;
-    width: 250px;
-    position: relative;
-    margin: auto;
-}
-
 .mycard {
     position: absolute;
     height: inherit;
