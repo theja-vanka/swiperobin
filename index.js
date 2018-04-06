@@ -12,6 +12,8 @@ var swiperobin = function() {
         itemsContainer: $(".basecard"),
         items: [],
         calculations: [],
+        difference: 0,
+        currentPosition: 0,
         containerWidth: $(this.container).width(),
         containerHeight: $(this.container).height(),
         leftItemsCount: 0,
@@ -19,11 +21,11 @@ var swiperobin = function() {
         index: 0
     };
     index = {
-    	0: 0
+        0: 0
     }
     defaults = {
         startingItem: 0,
-        seperation: 0,   //in percentage
+        seperation: 0, //in percentage
         sizeMultiplier: 0.8,
         opacityInitial: 1,
         opacityDifference: 0.1,
@@ -46,7 +48,7 @@ swiperobin.prototype.init = function() {
     this.setOriginalItemDimensions();
     this.preCalculatePositionProperties();
     this.setupRobin();
-    this.rotateRobin();
+    this.locatePosition();
 }
 
 swiperobin.prototype.setOriginalItemDimensions = function() {
@@ -82,7 +84,7 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
         'margin': 'auto',
         'display': 'block',
         'position': 'relative',
-        'perspective': defaults.perspective+'px'
+        'perspective': defaults.perspective + 'px'
     });
 
     data.calculations[0] = {
@@ -90,8 +92,8 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
         opacity: 1,
         scale: 1,
         zindex: 0,
-    } 
-    index[0] =0;
+    }
+    index[0] = 0;
 
     var flankdisplaycount = (defaults.flankingItems * 2);
     var opacity = defaults.opacityInitial;
@@ -106,22 +108,22 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
         if (i % 2 == 1) {
             opacity -= defaults.opacityDifference;
             scale *= defaults.sizeMultiplier;
-            seperation +=(50/j);
+            seperation += (75 / j);
             data.calculations[i] = {
-                distance: seperation+'%',
+                distance: seperation + '%',
                 opacity: opacity,
                 scale: scale,
                 zindex: -j
             }
-            index[i]= j;
+            index[i] = j;
         } else {
             data.calculations[i] = {
-                distance: -seperation+'%',
+                distance: -seperation + '%',
                 opacity: opacity,
                 scale: scale,
                 zindex: -j
             }
-            index[i]= -j;
+            index[i] = -j;
         }
     }
     for (var i = flankdisplaycount + 1; i < data.totalItems; i++) {
@@ -131,7 +133,7 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
             scale: 1,
             zindex: -data.totalItems
         }
-            index[i] = 0;
+        index[i] = 0;
     }
     console.log(index);
 }
@@ -155,15 +157,39 @@ swiperobin.prototype.setupRobin = function() {
     });
 }
 
-swiperobin.prototype.rotateRobin = function() {
+swiperobin.prototype.locatePosition = function() {
     var mycard = document.querySelectorAll("div.basecard .mycard");
-    for(var i =0; i<data.totalItems; i++)
-    {(function(posi) {
-        mycard[i].onclick = function() {
-            //console.log(posi);
-            data.index = posi;
-            console.log(posi);
-        }
-    })(i);
+    for (var i = 0; i < data.totalItems; i++) {
+        (function(posi) {
+            mycard[i].onclick = function() {
+                data.currentPosition = posi;
+                swiperobin.prototype.rotateRobin();
+            }
+        })(i);
     }
+}
+
+swiperobin.prototype.rotateRobin = function() {
+    data.difference = index[data.currentPosition];
+    console.log(data.difference);
+    this.animateCard();
+}
+
+swiperobin.prototype.animateCard = function() {
+	if(data.difference > 0)
+	{
+		this.animateBackward();
+	}
+	if(data.difference < 0)
+	{
+		this.animateForward();
+	}
+}
+
+swiperobin.prototype.animateBackward = function() {
+	console.log('AnimateBackward');
+}
+
+swiperobin.prototype.animateForward = function() {
+	console.log('AnimateFroward');
 }
