@@ -16,9 +16,8 @@ var swiperobin = function() {
         currentPosition: 0,
         containerWidth: $(this.container).width(),
         containerHeight: $(this.container).height(),
-        leftItemsCount: 0,
-        rightItemsCount: 0,
-        index: 0
+        leftMaxIndex: 0,
+        rightMaxIndex: 0,
     };
     index = {
         0: 0
@@ -69,11 +68,6 @@ swiperobin.prototype.forceImageDimensionsIfEnabled = function() {
         data.container.find('div.basecard')
             .width(defaults.forcedImageWidth)
             .height(defaults.forcedImageHeight);
-
-        /* data.container.find('div.basecard').each(function() {
-             $(this).width(defaults.forcedImageWidth);
-             $(this).height(defaults.forcedImageHeight);
-         });*/
     }
 }
 
@@ -99,12 +93,13 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
     var opacity = defaults.opacityInitial;
     var scale = 1;
     var seperation = defaults.seperation;
+    var j = 1;
 
     if (flankdisplaycount + 1 > data.totalItems) {
         flankdisplaycount = data.totalItems - 1;
     }
 
-    for (var i = 1, j = 1; i <= flankdisplaycount; i++, j = parseInt((i + 1) / 2)) {
+    for (var i = 1; i <= flankdisplaycount; i++, j = parseInt((i + 1) / 2)) {
         if (i % 2 == 1) {
             opacity -= defaults.opacityDifference;
             scale *= defaults.sizeMultiplier;
@@ -133,9 +128,12 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
             scale: 1,
             zindex: -data.totalItems
         }
-        index[i] = 0;
+        if (i % 2 == 1)
+            index[i] = j;
+        else
+            index[i] = -j;
     }
-    console.log(index);
+    //console.log(index);
 }
 
 swiperobin.prototype.setupRobin = function() {
@@ -172,24 +170,89 @@ swiperobin.prototype.locatePosition = function() {
 swiperobin.prototype.rotateRobin = function() {
     data.difference = index[data.currentPosition];
     console.log(data.difference);
-    this.animateCard();
-}
-
-swiperobin.prototype.animateCard = function() {
-	if(data.difference > 0)
-	{
-		this.animateBackward();
-	}
-	if(data.difference < 0)
-	{
-		this.animateForward();
-	}
+    if (data.difference > 0) {
+        this.animateBackward();
+    }
+    if (data.difference < 0) {
+        this.animateForward();
+    }
 }
 
 swiperobin.prototype.animateBackward = function() {
-	console.log('AnimateBackward');
+    console.log('AnimateBackward');
+    this.indexShift();
+    //var i = this.findKey(index, data.difference);
+   /* data.itemsContainer.find('.mycard').each(function() {
+
+        $(this).animate({
+            left: data.calculations[i].distance,
+            position: 'absolute',
+            height: 'inherit',
+            width: 'inherit',
+            opacity: data.calculations[i].opacity,
+        }, "slow");
+        $(this).css({
+            transform: 'scale(' + data.calculations[i].scale + ')',
+            zIndex: data.calculations[i].zindex
+        });
+        i++;
+    });*/
 }
 
 swiperobin.prototype.animateForward = function() {
-	console.log('AnimateFroward');
+    console.log('AnimateFroward');
+    this.indexShift();
+}
+
+swiperobin.prototype.indexShift = function() {
+	var min = this.keyMin();
+	var max = this.keyMax();
+    for (var i = 0; i < data.totalItems; i++) {
+        index[i] = index[i] - data.difference;
+        if (index[i] < min) {
+            index[i] = index[i] + 1;
+            index[i] = index[i] * -1;
+        }
+        if (index[i] > max) {
+            index[i] = index[i] - 1;
+            index[i] = index[i] * -1;
+        }
+    }
+    console.log(index);
+}
+
+
+
+
+swiperobin.prototype.findKey = function(obj, value) {
+    var key = null;
+    for (var prop in obj) {
+        if (obj.hasOwnProperty(prop)) {
+            if (obj[prop] === value) {
+                key = prop;
+            }
+        }
+    }
+    return key;
+}
+
+
+swiperobin.prototype.keyMax = function() {
+    var max = 0;
+    for (var i = 1; i < data.totalItems; i++) {
+        max = Object.keys(index).reduce(function(a, b) {
+            return index[i] > index[max] ? i : max
+        });
+    }
+    return (index[max]);
+}
+//Function Min
+swiperobin.prototype.keyMin = function() {
+    var min = 0;
+    for (var i = 1; i < data.totalItems; i++) {
+        min = Object.keys(index).reduce(function(a, b) {
+            return index[i] < index[min] ? i : min
+        });
+    }
+    return (index[min]);
 }
