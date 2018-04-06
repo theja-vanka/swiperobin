@@ -12,7 +12,7 @@ var swiperobin = function() {
         itemsContainer: $(".basecard"),
         items: [],
         calculations: [],
-        deepCalculations: {},
+        deepCalculations: [],
         deepCopyObject: {},
         deepCenter: [],
         difference: 0,
@@ -152,16 +152,15 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
 }
 swiperobin.prototype.deepCopy = function() {
 
-	//console.log(data.itemsContainer.find('.mycard'));
+    //console.log(data.itemsContainer.find('.mycard'));
     var point = 0;
     for (var i = this.keyMin(); i <= this.keyMax(); i++) {
         data.temp = this.findKey(index, i);
         data.deepCopyObject[point] = data.itemsContainer.find('.mycard').eq(data.temp);
         data.deepCalculations[point++] = data.calculations[data.temp];
     }
-    data.deepCopyObject['length'] = data.totalItems;
-    console.log(data.itemsContainer.find('.mycard'));
-    console.log(data.deepCopyObject);
+    //console.log(data.itemsContainer.find('.mycard'));
+    console.log(data.calculations);
     console.log(data.deepCalculations);
     //data.deepCenter = parseInt(data.totalItems / 2);
     //console.log(data.deepCenter);
@@ -206,7 +205,7 @@ swiperobin.prototype.rotateRobin = function() {
         //this.animateBackward();
     }
     if (data.difference < 0) {
-        //this.animateForward();
+        this.animateForward();
     }
 }
 
@@ -216,23 +215,22 @@ swiperobin.prototype.animateBackward = function() {
     data.deepCenter = data.deepCenter;
     var i = data.deepCenter;
     data.itemsContainer.find('.mycard').each(function() {
-    	if(i < data.totalItems)
-    	{
-    	
-        $(this).animate({
-            left: data.deepCalculations[i].distance,
-            position: 'absolute',
-            height: 'inherit',
-            width: 'inherit',
-            opacity: data.deepCalculations[i].opacity,
-        }, "slow");
-        $(this).css({
-            transform: 'scale(' + data.deepCalculations[i].scale + ')',
-            zIndex: data.deepCalculations[i].zindex
-        });
-    } else {
-    	i=0;
-    }
+        if (i < data.totalItems) {
+
+            $(this).animate({
+                left: data.deepCalculations[i].distance,
+                position: 'absolute',
+                height: 'inherit',
+                width: 'inherit',
+                opacity: data.deepCalculations[i].opacity,
+            }, "slow");
+            $(this).css({
+                transform: 'scale(' + data.deepCalculations[i].scale + ')',
+                zIndex: data.deepCalculations[i].zindex
+            });
+        } else {
+            i = 0;
+        }
 
         i++;
     });
@@ -242,22 +240,22 @@ swiperobin.prototype.animateBackward = function() {
 swiperobin.prototype.animateForward = function() {
     console.log('AnimateFroward');
     this.indexShift();
-        data.deepCopy = data.deepCenter + data.difference;
-        var i = data.deepCenter;
-    data.itemsContainer.find('.mycard').each(function() {
-        $(this).animate({
+    data.deepCopy = data.deepCenter + data.difference;
+    var i = data.deepCenter;
+    for (var x in data.deepCopyObject) {
+        data.deepCopyObject[x].animate({
             left: data.deepCalculations[i].distance,
             position: 'absolute',
             height: 'inherit',
             width: 'inherit',
             opacity: data.deepCalculations[i].opacity,
         }, "slow");
-        $(this).css({
+        data.deepCopyObject[x].css({
             transform: 'scale(' + data.deepCalculations[i].scale + ')',
             zIndex: data.deepCalculations[i].zindex
         });
         i++;
-    });
+    }
 }
 
 swiperobin.prototype.indexShift = function() {
