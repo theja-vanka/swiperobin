@@ -20,7 +20,7 @@ var swiperobin = function() {
     };
     defaults = {
         startingItem: 0,
-        seperation: 0,
+        seperation: 0,   //in percentage
         sizeMultiplier: 0.8,
         opacityInitial: 1,
         opacityDifference: 0.1,
@@ -91,12 +91,9 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
     }
 
     var flankdisplaycount = (defaults.flankingItems * 2);
-    var itemWidth = $('.basecard').find('div.mycard:first').width();
-    var seperationMultiplier = itemWidth / (defaults.flankingItems + 1);
     var opacity = defaults.opacityInitial;
     var scale = 1;
-    var seperation = itemWidth / 2;
-    var x = 0;
+    var seperation = defaults.seperation;
 
     if (flankdisplaycount + 1 > data.totalItems) {
         flankdisplaycount = data.totalItems - 1;
@@ -104,11 +101,11 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
 
     for (var i = 1, j = 1; i <= flankdisplaycount; i++, j = parseInt((i + 1) / 2)) {
         if (i % 2 == 1) {
-            x = x + seperation;
             opacity -= defaults.opacityDifference;
             scale *= defaults.sizeMultiplier;
+            seperation +=(50/j);
             data.calculations[i] = {
-                distance: x,
+                distance: seperation+'%',
                 opacity: opacity,
                 scale: scale,
                 index: j,
@@ -116,7 +113,7 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
             }
         } else {
             data.calculations[i] = {
-                distance: -x,
+                distance: -seperation+'%',
                 opacity: opacity,
                 scale: scale,
                 index: -j,
