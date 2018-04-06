@@ -160,9 +160,9 @@ swiperobin.prototype.deepCopy = function() {
         data.deepCalculations[point++] = data.calculations[data.temp];
     }
     //console.log(data.itemsContainer.find('.mycard'));
-    console.log(data.calculations);
-    console.log(data.deepCalculations);
-    //data.deepCenter = parseInt(data.totalItems / 2);
+    //console.log(data.calculations);
+    //console.log(data.deepCalculations[1].distance);
+    data.deepCenter = parseInt(data.totalItems / 2);
     //console.log(data.deepCenter);
 }
 
@@ -200,7 +200,7 @@ swiperobin.prototype.locatePosition = function() {
 
 swiperobin.prototype.rotateRobin = function() {
     data.difference = index[data.currentPosition];
-    console.log(data.difference);
+    //console.log(data.difference);
     if (data.difference > 0) {
         //this.animateBackward();
     }
@@ -243,17 +243,22 @@ swiperobin.prototype.animateForward = function() {
     data.deepCopy = data.deepCenter + data.difference;
     var i = data.deepCenter;
     for (var x in data.deepCopyObject) {
-        data.deepCopyObject[x].animate({
-            left: data.deepCalculations[i].distance,
-            position: 'absolute',
-            height: 'inherit',
-            width: 'inherit',
-            opacity: data.deepCalculations[i].opacity,
-        }, "slow");
-        data.deepCopyObject[x].css({
-            transform: 'scale(' + data.deepCalculations[i].scale + ')',
-            zIndex: data.deepCalculations[i].zindex
-        });
+        if (i < data.totalItems) {
+            //console.log(data.deepCalculations[1].distance);
+            data.deepCopyObject[x].animate({
+                left: data.deepCalculations[i].distance,
+                position: 'absolute',
+                height: 'inherit',
+                width: 'inherit',
+                opacity: data.deepCalculations[i].opacity,
+            }, "slow");
+            data.deepCopyObject[x].css({
+                transform: 'scale(' + data.deepCalculations[i].scale + ')',
+                zIndex: data.deepCalculations[i].zindex
+            });
+        } else {
+            i = 0;
+        }
         i++;
     }
 }
