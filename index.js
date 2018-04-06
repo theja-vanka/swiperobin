@@ -12,12 +12,16 @@ var swiperobin = function() {
         itemsContainer: $(".basecard"),
         items: [],
         calculations: [],
+        deepCalculations: {},
+        deepCopyObject: {},
+        deepCenter: [],
         difference: 0,
         currentPosition: 0,
         containerWidth: $(this.container).width(),
         containerHeight: $(this.container).height(),
         leftMaxIndex: 0,
         rightMaxIndex: 0,
+        temp: 0,
     };
     index = {
         0: 0
@@ -39,7 +43,7 @@ var swiperobin = function() {
         forcedImageWidth: 152,
         forcedImageHeight: 206,
     }
-    console.log('Object created');
+    //console.log('Object created');
     //console.log(defaults.forcedImageWidth);
 }
 
@@ -48,10 +52,11 @@ swiperobin.prototype.init = function() {
     this.preCalculatePositionProperties();
     this.setupRobin();
     this.locatePosition();
+    this.reSize();
 }
 
 swiperobin.prototype.setOriginalItemDimensions = function() {
-    console.log('setting dimenstions');
+    //console.log('setting dimenstions');
     data.container.find('div.mycard').each(function() {
         if ($(this).data('original_width') == undefined || defaults.forcedImageWidth > 0) {
             $(this).data('original_width', $(this).width());
@@ -69,6 +74,15 @@ swiperobin.prototype.forceImageDimensionsIfEnabled = function() {
             .width(defaults.forcedImageWidth)
             .height(defaults.forcedImageHeight);
     }
+}
+
+swiperobin.prototype.reSize = function() {
+    var pos = this.findKey(index, 3);
+
+    //console.log(pos);
+    $(window).resize(function() {
+        console.log('resize called');
+    });
 }
 
 swiperobin.prototype.preCalculatePositionProperties = function() {
@@ -134,12 +148,29 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
             index[i] = -j;
     }
     //console.log(index);
+    this.deepCopy();
 }
+swiperobin.prototype.deepCopy = function() {
+
+	//console.log(data.itemsContainer.find('.mycard'));
+    var point = 0;
+    for (var i = this.keyMin(); i <= this.keyMax(); i++) {
+        data.temp = this.findKey(index, i);
+        data.deepCopyObject[point] = data.itemsContainer.find('.mycard').eq(data.temp);
+        data.deepCalculations[point++] = data.calculations[data.temp];
+    }
+    data.deepCopyObject['length'] = data.totalItems;
+    console.log(data.itemsContainer.find('.mycard'));
+    console.log(data.deepCopyObject);
+    console.log(data.deepCalculations);
+    //data.deepCenter = parseInt(data.totalItems / 2);
+    //console.log(data.deepCenter);
+}
+
 
 swiperobin.prototype.setupRobin = function() {
     var i = 0;
     data.itemsContainer.find('.mycard').each(function() {
-
         $(this).animate({
             left: data.calculations[i].distance,
             position: 'absolute',
@@ -165,48 +196,73 @@ swiperobin.prototype.locatePosition = function() {
             }
         })(i);
     }
+    //console.log(index);
 }
 
 swiperobin.prototype.rotateRobin = function() {
     data.difference = index[data.currentPosition];
     console.log(data.difference);
     if (data.difference > 0) {
-        this.animateBackward();
+        //this.animateBackward();
     }
     if (data.difference < 0) {
-        this.animateForward();
+        //this.animateForward();
     }
 }
 
 swiperobin.prototype.animateBackward = function() {
     console.log('AnimateBackward');
     this.indexShift();
-    //var i = this.findKey(index, data.difference);
-   /* data.itemsContainer.find('.mycard').each(function() {
-
+    data.deepCenter = data.deepCenter;
+    var i = data.deepCenter;
+    data.itemsContainer.find('.mycard').each(function() {
+    	if(i < data.totalItems)
+    	{
+    	
         $(this).animate({
-            left: data.calculations[i].distance,
+            left: data.deepCalculations[i].distance,
             position: 'absolute',
             height: 'inherit',
             width: 'inherit',
-            opacity: data.calculations[i].opacity,
+            opacity: data.deepCalculations[i].opacity,
         }, "slow");
         $(this).css({
-            transform: 'scale(' + data.calculations[i].scale + ')',
-            zIndex: data.calculations[i].zindex
+            transform: 'scale(' + data.deepCalculations[i].scale + ')',
+            zIndex: data.deepCalculations[i].zindex
         });
+    } else {
+    	i=0;
+    }
+
         i++;
-    });*/
+    });
+
 }
 
 swiperobin.prototype.animateForward = function() {
     console.log('AnimateFroward');
     this.indexShift();
+        data.deepCopy = data.deepCenter + data.difference;
+        var i = data.deepCenter;
+    data.itemsContainer.find('.mycard').each(function() {
+        $(this).animate({
+            left: data.deepCalculations[i].distance,
+            position: 'absolute',
+            height: 'inherit',
+            width: 'inherit',
+            opacity: data.deepCalculations[i].opacity,
+        }, "slow");
+        $(this).css({
+            transform: 'scale(' + data.deepCalculations[i].scale + ')',
+            zIndex: data.deepCalculations[i].zindex
+        });
+        i++;
+    });
 }
 
 swiperobin.prototype.indexShift = function() {
-	var min = this.keyMin();
-	var max = this.keyMax();
+    var min = this.keyMin();
+    var max = this.keyMax();
     for (var i = 0; i < data.totalItems; i++) {
         index[i] = index[i] - data.difference;
         if (index[i] < min) {
@@ -218,7 +274,6 @@ swiperobin.prototype.indexShift = function() {
             index[i] = index[i] * -1;
         }
     }
-    console.log(index);
 }
 
 
