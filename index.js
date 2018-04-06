@@ -18,6 +18,9 @@ var swiperobin = function() {
         rightItemsCount: 0,
         index: 0
     };
+    index = {
+    	0: 0
+    }
     defaults = {
         startingItem: 0,
         seperation: 0,   //in percentage
@@ -86,9 +89,9 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
         distance: 0,
         opacity: 1,
         scale: 1,
-        index: 0,
         zindex: 0,
-    }
+    } 
+    index[0] =0;
 
     var flankdisplaycount = (defaults.flankingItems * 2);
     var opacity = defaults.opacityInitial;
@@ -108,17 +111,17 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
                 distance: seperation+'%',
                 opacity: opacity,
                 scale: scale,
-                index: j,
                 zindex: -j
             }
+            index[i]= j;
         } else {
             data.calculations[i] = {
                 distance: -seperation+'%',
                 opacity: opacity,
                 scale: scale,
-                index: -j,
                 zindex: -j
             }
+            index[i]= -j;
         }
     }
     for (var i = flankdisplaycount + 1; i < data.totalItems; i++) {
@@ -126,11 +129,11 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
             distance: 0,
             opacity: 0,
             scale: 1,
-            index: 0,
             zindex: -data.totalItems
         }
+            index[i] = 0;
     }
-    //console.log(data.calculations);
+    console.log(index);
 }
 
 swiperobin.prototype.setupRobin = function() {
