@@ -12,9 +12,9 @@ var swiperobin = function() {
         itemsContainer: $(".basecard"),
         items: [],
         calculations: [],
-        deepCalculations: [],
-        deepCopyObject: {},
-        deepCenter: [],
+        shallowCalculations: [],
+        shallowCopyObject: {},
+        shallowCenter: [],
         difference: 0,
         currentPosition: 0,
         containerWidth: $(this.container).width(),
@@ -148,22 +148,22 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
             index[i] = -j;
     }
     //console.log(index);
-    this.deepCopy();
+    this.shallowCopy();
 }
-swiperobin.prototype.deepCopy = function() {
+swiperobin.prototype.shallowCopy = function() {
 
     //console.log(data.itemsContainer.find('.mycard'));
     var point = 0;
     for (var i = this.keyMin(); i <= this.keyMax(); i++) {
         data.temp = this.findKey(index, i);
-        data.deepCopyObject[point] = data.itemsContainer.find('.mycard').eq(data.temp);
-        data.deepCalculations[point++] = data.calculations[data.temp];
+        data.shallowCopyObject[point] = data.itemsContainer.find('.mycard').eq(data.temp);
+        data.shallowCalculations[point++] = data.calculations[data.temp];
     }
     //console.log(data.itemsContainer.find('.mycard'));
     //console.log(data.calculations);
-    //console.log(data.deepCalculations[1].distance);
-    data.deepCenter = parseInt(data.totalItems / 2);
-    //console.log(data.deepCenter);
+    //console.log(data.shallowCalculations[1].distance);
+    data.shallowCenter = parseInt(data.totalItems / 2);
+    //console.log(data.shallowCenter);
 }
 
 
@@ -212,21 +212,21 @@ swiperobin.prototype.rotateRobin = function() {
 swiperobin.prototype.animateBackward = function() {
     console.log('AnimateBackward');
     this.indexShift();
-    data.deepCenter = data.deepCenter;
-    var i = data.deepCenter;
+    data.shallowCenter = data.shallowCenter;
+    var i = data.shallowCenter;
     data.itemsContainer.find('.mycard').each(function() {
         if (i < data.totalItems) {
 
             $(this).animate({
-                left: data.deepCalculations[i].distance,
+                left: data.shallowCalculations[i].distance,
                 position: 'absolute',
                 height: 'inherit',
                 width: 'inherit',
-                opacity: data.deepCalculations[i].opacity,
+                opacity: data.shallowCalculations[i].opacity,
             }, "slow");
             $(this).css({
-                transform: 'scale(' + data.deepCalculations[i].scale + ')',
-                zIndex: data.deepCalculations[i].zindex
+                transform: 'scale(' + data.shallowCalculations[i].scale + ')',
+                zIndex: data.shallowCalculations[i].zindex
             });
         } else {
             i = 0;
@@ -240,21 +240,21 @@ swiperobin.prototype.animateBackward = function() {
 swiperobin.prototype.animateForward = function() {
     console.log('AnimateFroward');
     this.indexShift();
-    data.deepCopy = data.deepCenter + data.difference;
-    var i = data.deepCenter;
-    for (var x in data.deepCopyObject) {
+    data.shallowCopy = data.shallowCenter + data.difference;
+    var i = data.shallowCenter;
+    for (var x in data.shallowCopyObject) {
         if (i < data.totalItems) {
-            //console.log(data.deepCalculations[1].distance);
-            data.deepCopyObject[x].animate({
-                left: data.deepCalculations[i].distance,
+            //console.log(data.shallowCalculations[1].distance);
+            data.shallowCopyObject[x].animate({
+                left: data.shallowCalculations[i].distance,
                 position: 'absolute',
                 height: 'inherit',
                 width: 'inherit',
-                opacity: data.deepCalculations[i].opacity,
+                opacity: data.shallowCalculations[i].opacity,
             }, "slow");
-            data.deepCopyObject[x].css({
-                transform: 'scale(' + data.deepCalculations[i].scale + ')',
-                zIndex: data.deepCalculations[i].zindex
+            data.shallowCopyObject[x].css({
+                transform: 'scale(' + data.shallowCalculations[i].scale + ')',
+                zIndex: data.shallowCalculations[i].zindex
             });
         } else {
             i = 0;
