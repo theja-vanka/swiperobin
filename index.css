@@ -2,10 +2,14 @@
     position: absolute;
     height: inherit;
     width: inherit;
-    background-color: yellow;
+    background-color: black;
 }
 
 .container-fluid {
     margin-top: 50px;
     overflow: hidden;
+}
+
+h1 {
+	color:white;
 }

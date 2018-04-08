@@ -14,7 +14,7 @@ var swiperobin = function() {
         calculations: [],
         shallowCalculations: [],
         shallowCopyObject: {},
-        shallowCenter: [],
+        shallowCenter: 0,
         difference: 0,
         currentPosition: 0,
         containerWidth: $(this.container).width(),
@@ -162,7 +162,6 @@ swiperobin.prototype.shallowCopy = function() {
     //console.log(data.itemsContainer.find('.mycard'));
     //console.log(data.calculations);
     //console.log(data.shallowCalculations[1].distance);
-    data.shallowCenter = parseInt(data.totalItems / 2);
     //console.log(data.shallowCenter);
 }
 
@@ -202,49 +201,21 @@ swiperobin.prototype.rotateRobin = function() {
     data.difference = index[data.currentPosition];
     //console.log(data.difference);
     if (data.difference > 0) {
-        //this.animateBackward();
+        this.animateBackward();
     }
     if (data.difference < 0) {
-        this.animateForward();
+        this.animateBackward();
     }
 }
 
 swiperobin.prototype.animateBackward = function() {
     console.log('AnimateBackward');
     this.indexShift();
-    data.shallowCenter = data.shallowCenter;
-    var i = data.shallowCenter;
-    data.itemsContainer.find('.mycard').each(function() {
-        if (i < data.totalItems) {
-
-            $(this).animate({
-                left: data.shallowCalculations[i].distance,
-                position: 'absolute',
-                height: 'inherit',
-                width: 'inherit',
-                opacity: data.shallowCalculations[i].opacity,
-            }, "slow");
-            $(this).css({
-                transform: 'scale(' + data.shallowCalculations[i].scale + ')',
-                zIndex: data.shallowCalculations[i].zindex
-            });
-        } else {
-            i = 0;
-        }
-
-        i++;
-    });
-
-}
-
-swiperobin.prototype.animateForward = function() {
-    console.log('AnimateFroward');
-    this.indexShift();
-    data.shallowCopy = data.shallowCenter + data.difference;
-    var i = data.shallowCenter;
+    var i = 0;
+    data.shallowCenter = (data.totalItems+data.shallowCenter - data.difference)%data.totalItems;
+    console.log(data.shallowCenter);
     for (var x in data.shallowCopyObject) {
-        if (i < data.totalItems) {
-            //console.log(data.shallowCalculations[1].distance);
+        i = (data.totalItems+data.shallowCenter+parseInt(x))%data.totalItems;
             data.shallowCopyObject[x].animate({
                 left: data.shallowCalculations[i].distance,
                 position: 'absolute',
@@ -256,10 +227,30 @@ swiperobin.prototype.animateForward = function() {
                 transform: 'scale(' + data.shallowCalculations[i].scale + ')',
                 zIndex: data.shallowCalculations[i].zindex
             });
-        } else {
-            i = 0;
-        }
-        i++;
+
+    }
+
+}
+
+swiperobin.prototype.animateForward = function() {
+    console.log('AnimateFroward');
+    this.indexShift();
+    var i = 0;
+    data.shallowCopy = data.shallowCenter - data.difference;
+    for (var x in data.shallowCopyObject) {
+            i = parseInt(x)-data.difference;
+            data.shallowCopyObject[x].animate({
+                left: data.shallowCalculations[i].distance,
+                position: 'absolute',
+                height: 'inherit',
+                width: 'inherit',
+                opacity: data.shallowCalculations[i].opacity,
+            }, "slow");
+            data.shallowCopyObject[x].css({
+                transform: 'scale(' + data.shallowCalculations[i].scale + ')',
+                zIndex: data.shallowCalculations[i].zindex
+            });
+
     }
 }
 
