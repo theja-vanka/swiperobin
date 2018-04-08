@@ -199,17 +199,10 @@ swiperobin.prototype.locatePosition = function() {
 
 swiperobin.prototype.rotateRobin = function() {
     data.difference = index[data.currentPosition];
-    //console.log(data.difference);
-    if (data.difference > 0) {
-        this.animateBackward();
-    }
-    if (data.difference < 0) {
-        this.animateBackward();
-    }
+    this.animateRobin();
 }
 
-swiperobin.prototype.animateBackward = function() {
-    console.log('AnimateBackward');
+swiperobin.prototype.animateRobin = function() {
     this.indexShift();
     var i = 0;
     data.shallowCenter = (data.totalItems+data.shallowCenter - data.difference)%data.totalItems;
@@ -222,36 +215,14 @@ swiperobin.prototype.animateBackward = function() {
                 height: 'inherit',
                 width: 'inherit',
                 opacity: data.shallowCalculations[i].opacity,
-            }, "slow");
+            },defaults.speed, defaults.animationEasing,
             data.shallowCopyObject[x].css({
                 transform: 'scale(' + data.shallowCalculations[i].scale + ')',
                 zIndex: data.shallowCalculations[i].zindex
-            });
+            }));
 
     }
 
-}
-
-swiperobin.prototype.animateForward = function() {
-    console.log('AnimateFroward');
-    this.indexShift();
-    var i = 0;
-    data.shallowCopy = data.shallowCenter - data.difference;
-    for (var x in data.shallowCopyObject) {
-            i = parseInt(x)-data.difference;
-            data.shallowCopyObject[x].animate({
-                left: data.shallowCalculations[i].distance,
-                position: 'absolute',
-                height: 'inherit',
-                width: 'inherit',
-                opacity: data.shallowCalculations[i].opacity,
-            }, "slow");
-            data.shallowCopyObject[x].css({
-                transform: 'scale(' + data.shallowCalculations[i].scale + ')',
-                zIndex: data.shallowCalculations[i].zindex
-            });
-
-    }
 }
 
 swiperobin.prototype.indexShift = function() {
