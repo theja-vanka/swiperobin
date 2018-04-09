@@ -16,13 +16,14 @@ var swiperobin = function() {
         shallowCopyObject: {},
         shallowCenter: 0,
         difference: 0,
+        maxDistance: 0,
         currentPosition: 0,
         containerWidth: $(this.container).width(),
         containerHeight: $(this.container).height(),
         leftMaxIndex: 0,
         rightMaxIndex: 0,
         temp: 0,
-    };
+    }
     index = {
         0: 0
     }
@@ -81,7 +82,9 @@ swiperobin.prototype.reSize = function() {
 
     //console.log(pos);
     $(window).resize(function() {
-        console.log('resize called');
+        console.log($(window).width()); // New height
+        //console.log('resize called');
+
     });
 }
 
@@ -108,6 +111,8 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
     var scale = 1;
     var seperation = defaults.seperation;
     var j = 1;
+    data.maxDistance = data.itemsContainer.width();
+    var calcDistance = 0;
 
     if (flankdisplaycount + 1 > data.totalItems) {
         flankdisplaycount = data.totalItems - 1;
@@ -118,6 +123,7 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
             opacity -= defaults.opacityDifference;
             scale *= defaults.sizeMultiplier;
             seperation += (75 / j);
+            data.maxDistance +=((75/j)*(data.maxDistance/100));
             data.calculations[i] = {
                 distance: seperation + '%',
                 opacity: opacity,
@@ -147,6 +153,7 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
         else
             index[i] = -j;
     }
+    console.log(data.maxDistance);
     //console.log(index);
     this.shallowCopy();
 }
@@ -168,20 +175,24 @@ swiperobin.prototype.shallowCopy = function() {
 
 swiperobin.prototype.setupRobin = function() {
     var i = 0;
+
+    data.itemsContainer.find('.mycard').each(function() {
+        $(this).css({
+            left: 0
+        });
+    });
+
+
     data.itemsContainer.find('.mycard').each(function() {
         $(this).transition({
-            left: data.calculations[i].distance,
             position: 'absolute',
             height: 'inherit',
             width: 'inherit',
             scale: data.calculations[i].scale,
             zIndex: data.calculations[i].zindex,
             opacity: data.calculations[i].opacity,
-        }, "slow");
-        /*$(this).css({
-            transform: 'scale(' + data.calculations[i].scale + ')',
-            zIndex: data.calculations[i].zindex
-        });*/
+            left: data.calculations[i].distance,
+        }, 1000);
         i++;
     });
 
