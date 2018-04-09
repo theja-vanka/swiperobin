@@ -6,28 +6,32 @@ $(document).ready(function() {
 
 
 var swiperobin = function() {
-    data = {
-        totalItems: $(".basecard").find('.mycard').length,
-        container: $(".basecard").parents(".container-fluid"),
+    this.data = {
         itemsContainer: $(".basecard"),
+        container: $(".basecard").parents(".container-fluid"),
+        containerWidth : 0,
+        containerHeight : 0,
         items: [],
+        totalItems : 0,
         calculations: [],
+        orriantation : [],
+        pastorriantation : [],
+
         shallowCalculations: [],
         shallowCopyObject: {},
         shallowCenter: 0,
         difference: 0,
         maxDistance: 0,
         currentPosition: 0,
-        containerWidth: $(this.container).width(),
-        containerHeight: $(this.container).height(),
         leftMaxIndex: 0,
         rightMaxIndex: 0,
         temp: 0,
     }
-    index = {
+    
+    this.index = {
         0: 0
     }
-    defaults = {
+    this.defaults = {
         startingItem: 0,
         seperation: 0, //in percentage
         sizeMultiplier: 0.8,
@@ -52,30 +56,177 @@ swiperobin.prototype.init = function() {
     this.setOriginalItemDimensions();
     this.preCalculatePositionProperties();
     this.setupRobin();
-    this.locatePosition();
-    this.reSize();
+    this.HandleClicks();
+    //this.locatePosition();
+    //this.reSize();
 }
 
 swiperobin.prototype.setOriginalItemDimensions = function() {
+
+    this.data.items = this.data.container.find('div.mycard');
+    this.data.totalItems = this.data.items.length;
+
     //console.log('setting dimenstions');
-    data.container.find('div.mycard').each(function() {
-        if ($(this).data('original_width') == undefined || defaults.forcedImageWidth > 0) {
-            $(this).data('original_width', $(this).width());
+    this.data.items.each(function() {
+        if ($(this).attr('original_width') == undefined) 
+        {
+            $(this).attr('original_width', $(this).width());
         }
-        if ($(this).data('original_height') == undefined || defaults.forcedImageHeight > 0) {
-            $(this).data('original_height', $(this).height());
+        if ($(this).attr('original_height') == undefined) {
+            $(this).attr('original_height', $(this).height());
         }
     });
-    this.forceImageDimensionsIfEnabled();
+    if (this.defaults.forcedImageWidth && this.defaults.forcedImageHeight) {
+        this.data.itemsContainer
+            .width(this.defaults.forcedImageWidth)
+            .height(this.defaults.forcedImageHeight);
+    }
+    
 }
 
-swiperobin.prototype.forceImageDimensionsIfEnabled = function() {
-    if (defaults.forcedImageWidth && defaults.forcedImageHeight) {
-        data.container.find('div.basecard')
-            .width(defaults.forcedImageWidth)
-            .height(defaults.forcedImageHeight);
+swiperobin.prototype.preCalculatePositionProperties = function() {
+    // The 0 index is the center item in the carousel
+    var Item = this.data.itemsContainer;
+    Item.css({
+        'margin': 'auto',
+        'display': 'block',
+        'position': 'relative',
+        'perspective': this.defaults.perspective + 'px'
+    });
+
+    this.data.calculations[0] = {
+        distance: 0,
+        opacity: 1,
+        scale: 1,
+        zindex: 0,
+    }
+    this.index[0] = 0;
+    
+    $(this.data.items[0]).attr("data-index", 0);
+    this.data.orriantation.push(0);
+
+    var flankdisplaycount = (this.defaults.flankingItems * 2);
+    var opacity = this.defaults.opacityInitial;
+    var scale = 1;
+    var seperation = this.defaults.seperation;
+    var j = 1;
+    this.data.maxDistance = this.data.itemsContainer.width();
+    var calcDistance = 0;
+
+    if ((flankdisplaycount + 1) > this.data.totalItems) {
+        flankdisplaycount = this.data.totalItems - 1;
+    }
+
+    for (var i = 1; i <= flankdisplaycount; i++, j = parseInt((i + 1) / 2)) {
+        if (i % 2 == 1) 
+        {
+            opacity -= this.defaults.opacityDifference;
+            scale *= this.defaults.sizeMultiplier;
+            seperation += (75 / j);
+            this.data.maxDistance += ((75/j)*(this.data.maxDistance/100));
+            this.data.calculations[i] = {
+                distance: seperation + '%',
+                opacity: opacity,
+                scale: scale,
+                zindex: -j
+            }
+            this.index[i] = j;
+        } else 
+        {
+            this.data.calculations[i] = {
+                distance: -seperation + '%',
+                opacity: opacity,
+                scale: scale,
+                zindex: -j
+            }
+            this.index[i] = -j;
+        }
+
+        $(this.data.items[i]).attr("data-index", i);
+        this.data.orriantation.push(i);
+    }
+    for (var i = flankdisplaycount + 1; i < this.data.totalItems; i++) {
+        this.data.calculations[i] = {
+            distance: 0,
+            opacity: 0,
+            scale: 0,
+            zindex: -this.data.totalItems
+        }
+        if (i % 2 == 1)
+        {
+            this.index[i] = j;
+        }
+        else
+        {
+            this.index[i] = -j;
+        }
+        $(this.data.items[i]).attr("data-index", i);
+        this.data.orriantation.push(i);
+    }
+    console.log(this.data.maxDistance);
+    //console.log(index);
+   //this.shallowCopy();
+}
+
+swiperobin.prototype.setupRobin = function() {
+    var i = 0;
+
+    if(this.data.pastorriantation.length == 0)
+    {
+        this.data.items.each(function() {
+            $(this).css({
+                left: 0
+            });
+        });
+    }
+    for(var i = 0; i < this.data.totalItems; i++)
+    {
+        $(this.data.items[this.data.orriantation[i]]).transition({
+            position: 'absolute',
+            height: 'inherit',
+            width: 'inherit',
+            scale: this.data.calculations[i].scale,
+            zIndex: this.data.calculations[i].zindex,
+            opacity: this.data.calculations[i].opacity,
+            left: this.data.calculations[i].distance,
+        }, 1000);
+    }
+    if(this.data.pastorriantation.length != 0)
+    {
+        this.data.orriantation = this.data.pastorriantation;
     }
 }
+
+swiperobin.prototype.HandleClicks = function() 
+{
+    this.data.items.unbind().bind("click", this, function(e){
+        var myPosition = $(this).attr("data-index");
+        var myIndex = -1;
+        var obj = e.data;
+        for(var i = 0; i < obj.data.totalItems; i++)
+        {
+            if(myPosition == obj.data.orriantation[i])
+            {
+                myIndex = i;
+                break;
+            }
+        }
+        if(myIndex >= 0)
+        {
+            obj.data.pastorriantation = obj.data.orriantation;
+            var left = obj.data.orriantation.slice(0, myIndex);
+            var right = obj.data.orriantation.slice(myIndex);
+
+            obj.data.orriantation = right.concat(left);
+            obj.data.orriantation = [];
+
+
+            obj.setupRobin();
+        }
+    });
+};
+
+
 
 swiperobin.prototype.reSize = function() {
     var pos = this.findKey(index, 3);
@@ -88,75 +239,7 @@ swiperobin.prototype.reSize = function() {
     });
 }
 
-swiperobin.prototype.preCalculatePositionProperties = function() {
-    // The 0 index is the center item in the carousel
-    var Item = data.itemsContainer;
-    Item.css({
-        'margin': 'auto',
-        'display': 'block',
-        'position': 'relative',
-        'perspective': defaults.perspective + 'px'
-    });
 
-    data.calculations[0] = {
-        distance: 0,
-        opacity: 1,
-        scale: 1,
-        zindex: 0,
-    }
-    index[0] = 0;
-
-    var flankdisplaycount = (defaults.flankingItems * 2);
-    var opacity = defaults.opacityInitial;
-    var scale = 1;
-    var seperation = defaults.seperation;
-    var j = 1;
-    data.maxDistance = data.itemsContainer.width();
-    var calcDistance = 0;
-
-    if (flankdisplaycount + 1 > data.totalItems) {
-        flankdisplaycount = data.totalItems - 1;
-    }
-
-    for (var i = 1; i <= flankdisplaycount; i++, j = parseInt((i + 1) / 2)) {
-        if (i % 2 == 1) {
-            opacity -= defaults.opacityDifference;
-            scale *= defaults.sizeMultiplier;
-            seperation += (75 / j);
-            data.maxDistance +=((75/j)*(data.maxDistance/100));
-            data.calculations[i] = {
-                distance: seperation + '%',
-                opacity: opacity,
-                scale: scale,
-                zindex: -j
-            }
-            index[i] = j;
-        } else {
-            data.calculations[i] = {
-                distance: -seperation + '%',
-                opacity: opacity,
-                scale: scale,
-                zindex: -j
-            }
-            index[i] = -j;
-        }
-    }
-    for (var i = flankdisplaycount + 1; i < data.totalItems; i++) {
-        data.calculations[i] = {
-            distance: 0,
-            opacity: 0,
-            scale: 0,
-            zindex: -data.totalItems
-        }
-        if (i % 2 == 1)
-            index[i] = j;
-        else
-            index[i] = -j;
-    }
-    console.log(data.maxDistance);
-    //console.log(index);
-    this.shallowCopy();
-}
 swiperobin.prototype.shallowCopy = function() {
 
     //console.log(data.itemsContainer.find('.mycard'));
@@ -173,30 +256,7 @@ swiperobin.prototype.shallowCopy = function() {
 }
 
 
-swiperobin.prototype.setupRobin = function() {
-    var i = 0;
 
-    data.itemsContainer.find('.mycard').each(function() {
-        $(this).css({
-            left: 0
-        });
-    });
-
-
-    data.itemsContainer.find('.mycard').each(function() {
-        $(this).transition({
-            position: 'absolute',
-            height: 'inherit',
-            width: 'inherit',
-            scale: data.calculations[i].scale,
-            zIndex: data.calculations[i].zindex,
-            opacity: data.calculations[i].opacity,
-            left: data.calculations[i].distance,
-        }, 1000);
-        i++;
-    });
-
-}
 
 swiperobin.prototype.locatePosition = function() {
     var mycard = document.querySelectorAll("div.basecard .mycard");
