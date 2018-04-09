@@ -107,6 +107,7 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
         opacity: 1,
         height: data.scaleHeight,
         width: data.scaleWidth,
+        top: 0,
         zindex: 0,
     }
     index[0] = 0;
@@ -233,12 +234,13 @@ swiperobin.prototype.animateRobin = function() {
             data.shallowCopyObject[x].animate({
                 left: data.shallowCalculations[i].distance,
                 position: 'absolute',
+                top: data.shallowCalculations[i].top,
                 height: data.shallowCalculations[i].height,
                 width: data.shallowCalculations[i].width,
                 opacity: data.shallowCalculations[i].opacity,
             },defaults.speed, defaults.animationEasing,
             data.shallowCopyObject[x].css({
-                transform: 'scale(' + data.shallowCalculations[i].scale + ')',
+                //transform: 'scale(' + data.shallowCalculations[i].scale + ')',
                 zIndex: data.shallowCalculations[i].zindex
             }));
 
