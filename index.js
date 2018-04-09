@@ -139,7 +139,7 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
         data.calculations[i] = {
             distance: 0,
             opacity: 0,
-            scale: 1,
+            scale: 0,
             zindex: -data.totalItems
         }
         if (i % 2 == 1)
@@ -169,19 +169,22 @@ swiperobin.prototype.shallowCopy = function() {
 swiperobin.prototype.setupRobin = function() {
     var i = 0;
     data.itemsContainer.find('.mycard').each(function() {
-        $(this).animate({
+        $(this).transition({
             left: data.calculations[i].distance,
             position: 'absolute',
             height: 'inherit',
             width: 'inherit',
+            scale: data.calculations[i].scale,
+            zIndex: data.calculations[i].zindex,
             opacity: data.calculations[i].opacity,
         }, "slow");
-        $(this).css({
+        /*$(this).css({
             transform: 'scale(' + data.calculations[i].scale + ')',
             zIndex: data.calculations[i].zindex
-        });
+        });*/
         i++;
     });
+
 }
 
 swiperobin.prototype.locatePosition = function() {
@@ -205,21 +208,19 @@ swiperobin.prototype.rotateRobin = function() {
 swiperobin.prototype.animateRobin = function() {
     this.indexShift();
     var i = 0;
-    data.shallowCenter = (data.totalItems+data.shallowCenter - data.difference)%data.totalItems;
+    data.shallowCenter = (data.totalItems + data.shallowCenter - data.difference) % data.totalItems;
     console.log(data.shallowCenter);
     for (var x in data.shallowCopyObject) {
-        i = (data.totalItems+data.shallowCenter+parseInt(x))%data.totalItems;
-            data.shallowCopyObject[x].animate({
-                left: data.shallowCalculations[i].distance,
-                position: 'absolute',
-                height: 'inherit',
-                width: 'inherit',
-                opacity: data.shallowCalculations[i].opacity,
-            },defaults.speed, defaults.animationEasing,
-            data.shallowCopyObject[x].css({
-                transform: 'scale(' + data.shallowCalculations[i].scale + ')',
-                zIndex: data.shallowCalculations[i].zindex
-            }));
+        i = (data.totalItems + data.shallowCenter + parseInt(x)) % data.totalItems;
+        data.shallowCopyObject[x].transition({
+            left: data.shallowCalculations[i].distance,
+            position: 'absolute',
+            height: 'inherit',
+            width: 'inherit',
+            scale: data.shallowCalculations[i].scale,
+            zIndex: data.shallowCalculations[i].zindex,
+            opacity: data.shallowCalculations[i].opacity,
+        }, defaults.speed, defaults.animationEasing);
 
     }
 
