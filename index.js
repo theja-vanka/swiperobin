@@ -14,9 +14,8 @@ var swiperobin = function() {
         items: [],
         totalItems : 0,
         calculations: [],
-        orriantation : [],
-        pastorriantation : [],
-
+        orientation : [],
+        
         shallowCalculations: [],
         shallowCopyObject: {},
         shallowCenter: 0,
@@ -37,7 +36,8 @@ var swiperobin = function() {
         sizeMultiplier: 0.8,
         opacityInitial: 1,
         opacityDifference: 0.1,
-        perspective: 3000, //in pixels
+        //perspective: 3000, //in pixels
+        perspective: 0, //in pixels
         flankingItems: 3,
         //animation defaults
         speed: 500,
@@ -58,7 +58,7 @@ swiperobin.prototype.init = function() {
     this.setupRobin();
     this.HandleClicks();
     //this.locatePosition();
-    //this.reSize();
+    this.reSize();
 }
 
 swiperobin.prototype.setOriginalItemDimensions = function() {
@@ -94,28 +94,29 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
         'perspective': this.defaults.perspective + 'px'
     });
 
-    this.data.calculations[0] = {
+    this.data.calculations = [{
         distance: 0,
         opacity: 1,
         scale: 1,
         zindex: 0,
-    }
+    }];
     this.index[0] = 0;
     
     $(this.data.items[0]).attr("data-index", 0);
-    this.data.orriantation.push(0);
+    this.data.orientation = [0];
 
     var flankdisplaycount = (this.defaults.flankingItems * 2);
     var opacity = this.defaults.opacityInitial;
     var scale = 1;
     var seperation = this.defaults.seperation;
     var j = 1;
-    this.data.maxDistance = this.data.itemsContainer.width();
     var calcDistance = 0;
 
     if ((flankdisplaycount + 1) > this.data.totalItems) {
         flankdisplaycount = this.data.totalItems - 1;
     }
+
+    this.data.maxDistance = 100;
 
     for (var i = 1; i <= flankdisplaycount; i++, j = parseInt((i + 1) / 2)) {
         if (i % 2 == 1) 
@@ -123,55 +124,70 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
             opacity -= this.defaults.opacityDifference;
             scale *= this.defaults.sizeMultiplier;
             seperation += (75 / j);
-            this.data.maxDistance += ((75/j)*(this.data.maxDistance/100));
-            this.data.calculations[i] = {
+            
+            this.data.maxDistance += (scale * (75 / j));
+
+            this.data.calculations.push({
                 distance: seperation + '%',
                 opacity: opacity,
                 scale: scale,
                 zindex: -j
-            }
+            });
             this.index[i] = j;
+            this.data.orientation.push(i);
         } else 
         {
-            this.data.calculations[i] = {
+            this.data.maxDistance += (scale * (75 / j));
+            
+            this.data.calculations.unshift({
                 distance: -seperation + '%',
                 opacity: opacity,
                 scale: scale,
                 zindex: -j
-            }
+            });
             this.index[i] = -j;
+            this.data.orientation.unshift(i);
         }
 
         $(this.data.items[i]).attr("data-index", i);
-        this.data.orriantation.push(i);
     }
     for (var i = flankdisplaycount + 1; i < this.data.totalItems; i++) {
-        this.data.calculations[i] = {
-            distance: 0,
-            opacity: 0,
-            scale: 0,
-            zindex: -this.data.totalItems
-        }
         if (i % 2 == 1)
         {
+            this.data.calculations.push({
+                distance: 0,
+                opacity: 0,
+                scale: 0,
+                zindex: -this.data.totalItems
+            });
             this.index[i] = j;
+            this.data.orientation.push(i);
         }
         else
         {
+            this.data.calculations.unshift({
+                distance: 0,
+                opacity: 0,
+                scale: 0,
+                zindex: -this.data.totalItems
+            });
             this.index[i] = -j;
+            this.data.orientation.unshift(i);
         }
         $(this.data.items[i]).attr("data-index", i);
-        this.data.orriantation.push(i);
     }
+    
+    this.data.maxDistance = 100 + (seperation * 2);
     console.log(this.data.maxDistance);
+    console.log("MaxWidth= " + this.data.maxDistance * 152 / 100);
     //console.log(index);
    //this.shallowCopy();
 }
 
-swiperobin.prototype.setupRobin = function() {
+swiperobin.prototype.setupRobin = function(subsequent) {
     var i = 0;
 
-    if(this.data.pastorriantation.length == 0)
+    if(typeof subsequent === 'undefined')
     {
         this.data.items.each(function() {
             $(this).css({
@@ -181,19 +197,16 @@ swiperobin.prototype.setupRobin = function() {
     }
     for(var i = 0; i < this.data.totalItems; i++)
     {
-        $(this.data.items[this.data.orriantation[i]]).transition({
+        console.log(this.data.orientation[i], i, this.data.calculations[this.data.orientation[i]]);
+        $(this.data.items[this.data.orientation[i]]).transition({
             position: 'absolute',
             height: 'inherit',
             width: 'inherit',
+            left: this.data.calculations[i].distance,
             scale: this.data.calculations[i].scale,
             zIndex: this.data.calculations[i].zindex,
             opacity: this.data.calculations[i].opacity,
-            left: this.data.calculations[i].distance,
         }, 1000);
-    }
-    if(this.data.pastorriantation.length != 0)
-    {
-        this.data.orriantation = this.data.pastorriantation;
     }
 }
 
@@ -205,7 +218,7 @@ swiperobin.prototype.HandleClicks = function()
         var obj = e.data;
         for(var i = 0; i < obj.data.totalItems; i++)
         {
-            if(myPosition == obj.data.orriantation[i])
+            if(myPosition == obj.data.orientation[i])
             {
                 myIndex = i;
                 break;
@@ -213,15 +226,21 @@ swiperobin.prototype.HandleClicks = function()
         }
         if(myIndex >= 0)
         {
-            obj.data.pastorriantation = obj.data.orriantation;
-            var left = obj.data.orriantation.slice(0, myIndex);
-            var right = obj.data.orriantation.slice(myIndex);
-
-            obj.data.orriantation = right.concat(left);
-            obj.data.orriantation = [];
-
-
-            obj.setupRobin();
+            var left = [];
+            var right = [];
+            var halfLength = parseInt((obj.data.totalItems-1)/2);
+            if(myIndex > halfLength)
+            {
+                left = obj.data.orientation.slice(myIndex - halfLength);
+                right = obj.data.orientation.slice(0, myIndex - halfLength);
+            }
+            else
+            {
+                left = obj.data.orientation.slice(obj.data.totalItems- halfLength + myIndex);
+                right = obj.data.orientation.slice(0, obj.data.totalItems- halfLength + myIndex); 
+            }
+            obj.data.orientation = left.concat(right);
+            obj.setupRobin(true);
         }
     });
 };
@@ -229,7 +248,7 @@ swiperobin.prototype.HandleClicks = function()
 
 
 swiperobin.prototype.reSize = function() {
-    var pos = this.findKey(index, 3);
+    //var pos = this.findKey(index, 3);
 
     //console.log(pos);
     $(window).resize(function() {
