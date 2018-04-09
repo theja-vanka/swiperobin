@@ -15,8 +15,6 @@ var swiperobin = function() {
         shallowCalculations: [],
         shallowCopyObject: {},
         shallowCenter: 0,
-        scaleWidth: 0,
-        scaleHeight: 0,
         difference: 0,
         currentPosition: 0,
         containerWidth: $(this.container).width(),
@@ -62,11 +60,9 @@ swiperobin.prototype.setOriginalItemDimensions = function() {
     data.container.find('div.mycard').each(function() {
         if ($(this).data('original_width') == undefined || defaults.forcedImageWidth > 0) {
             $(this).data('original_width', $(this).width());
-            data.scaleWidth = $(this).width();
         }
         if ($(this).data('original_height') == undefined || defaults.forcedImageHeight > 0) {
             $(this).data('original_height', $(this).height());
-            data.scaleHeight = $(this).height();
         }
     });
     this.forceImageDimensionsIfEnabled();
@@ -77,9 +73,6 @@ swiperobin.prototype.forceImageDimensionsIfEnabled = function() {
         data.container.find('div.basecard')
             .width(defaults.forcedImageWidth)
             .height(defaults.forcedImageHeight);
-
-        data.scaleWidth = data.container.find('div.basecard').width();
-        data.scaleHeight = data.container.find('div.basecard').height();
     }
 }
 
@@ -105,9 +98,7 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
     data.calculations[0] = {
         distance: 0,
         opacity: 1,
-        height: data.scaleHeight,
-        width: data.scaleWidth,
-        top: 0,
+        scale: 1,
         zindex: 0,
     }
     index[0] = 0;
@@ -117,9 +108,6 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
     var scale = 1;
     var seperation = defaults.seperation;
     var j = 1;
-    var sHeight = data.scaleHeight;
-    var sWidth = data.scaleWidth;
-    var offset = 0;
 
     if (flankdisplaycount + 1 > data.totalItems) {
         flankdisplaycount = data.totalItems - 1;
@@ -129,16 +117,11 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
         if (i % 2 == 1) {
             opacity -= defaults.opacityDifference;
             scale *= defaults.sizeMultiplier;
-            sHeight *= scale;
-            sWidth *= scale;
-            offset = (data.scaleHeight - sHeight)/2;
             seperation += (75 / j);
             data.calculations[i] = {
                 distance: seperation + '%',
                 opacity: opacity,
-                height: sHeight,
-                width: sWidth,
-                top: offset,
+                scale: scale,
                 zindex: -j
             }
             index[i] = j;
@@ -146,9 +129,7 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
             data.calculations[i] = {
                 distance: -seperation + '%',
                 opacity: opacity,
-                height: sHeight,
-                width: sWidth,
-                top: offset,
+                scale: scale,
                 zindex: -j
             }
             index[i] = -j;
@@ -158,9 +139,7 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
         data.calculations[i] = {
             distance: 0,
             opacity: 0,
-            height: 0,
-            width : 0,
-            top: offset,
+            scale: 1,
             zindex: -data.totalItems
         }
         if (i % 2 == 1)
@@ -193,13 +172,12 @@ swiperobin.prototype.setupRobin = function() {
         $(this).animate({
             left: data.calculations[i].distance,
             position: 'absolute',
-            height: data.calculations[i].height,
-            width: data.calculations[i].width,
-            top: data.calculations[i].top,
+            height: 'inherit',
+            width: 'inherit',
             opacity: data.calculations[i].opacity,
         }, "slow");
         $(this).css({
-            //transform: 'scale(' + data.calculations[i].scale + ')',
+            transform: 'scale(' + data.calculations[i].scale + ')',
             zIndex: data.calculations[i].zindex
         });
         i++;
@@ -234,13 +212,12 @@ swiperobin.prototype.animateRobin = function() {
             data.shallowCopyObject[x].animate({
                 left: data.shallowCalculations[i].distance,
                 position: 'absolute',
-                top: data.shallowCalculations[i].top,
-                height: data.shallowCalculations[i].height,
-                width: data.shallowCalculations[i].width,
+                height: 'inherit',
+                width: 'inherit',
                 opacity: data.shallowCalculations[i].opacity,
             },defaults.speed, defaults.animationEasing,
             data.shallowCopyObject[x].css({
-                //transform: 'scale(' + data.shallowCalculations[i].scale + ')',
+                transform: 'scale(' + data.shallowCalculations[i].scale + ')',
                 zIndex: data.shallowCalculations[i].zindex
             }));
 
