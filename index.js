@@ -8,24 +8,18 @@ var swiperobin = function() {
     this.data = {
         itemsContainer: $(".basecard"),
         container: $(".basecard").parents(".container-fluid"),
-        containerWidth : 0,
-        containerHeight : 0,
+        containerWidth: 0,
+        containerHeight: 0,
         items: [],
-        totalItems : 0,
+        totalItems: 0,
         calculations: [],
-        orientation : [],
-        
-        shallowCalculations: [],
-        shallowCopyObject: {},
-        shallowCenter: 0,
-        difference: 0,
+        orientation: [],
         maxDistance: 0,
-        currentPosition: 0,
-        leftMaxIndex: 0,
-        rightMaxIndex: 0,
-        temp: 0,
+        clickx: 0,
+        movex: 0,
+        preview: 0
     }
-    
+
     this.index = {
         0: 0
     }
@@ -37,7 +31,7 @@ var swiperobin = function() {
         opacityDifference: 0.1,
         perspective: 3000, //in pixels
         flankingItems: 3,
-       
+
         //animation defaults
         speed: 700,
         animationEasing: 'linear',
@@ -54,6 +48,7 @@ swiperobin.prototype.init = function() {
     this.preCalculatePositionProperties();
     this.setupRobin();
     this.HandleClicks();
+    this.HandleDrag();
     this.reSize();
 }
 
@@ -63,8 +58,7 @@ swiperobin.prototype.setOriginalItemDimensions = function() {
     this.data.totalItems = this.data.items.length;
 
     this.data.items.each(function() {
-        if ($(this).attr('original_width') == undefined) 
-        {
+        if ($(this).attr('original_width') == undefined) {
             $(this).attr('original_width', $(this).width());
         }
         if ($(this).attr('original_height') == undefined) {
@@ -76,7 +70,7 @@ swiperobin.prototype.setOriginalItemDimensions = function() {
             .width(this.defaults.forcedImageWidth)
             .height(this.defaults.forcedImageHeight);
     }
-    
+
 }
 
 swiperobin.prototype.preCalculatePositionProperties = function() {
@@ -96,7 +90,7 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
         zindex: 0,
     }];
     this.index[0] = 0;
-    
+
     $(this.data.items[0]).attr("data-index", 0);
     this.data.orientation = [0];
 
@@ -114,12 +108,11 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
     this.data.maxDistance = 100;
 
     for (var i = 1; i <= flankdisplaycount; i++, j = parseInt((i + 1) / 2)) {
-        if (i % 2 == 1) 
-        {
+        if (i % 2 == 1) {
             opacity -= this.defaults.opacityDifference;
             scale *= this.defaults.sizeMultiplier;
             seperation += (75 / j);
-            
+
             this.data.maxDistance += (scale * (75 / j));
 
             this.data.calculations.push({
@@ -130,10 +123,9 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
             });
             this.index[i] = j;
             this.data.orientation.push(i);
-        } else 
-        {
+        } else {
             this.data.maxDistance += (scale * (75 / j));
-            
+
             this.data.calculations.unshift({
                 distance: -seperation + '%',
                 opacity: opacity,
@@ -147,8 +139,7 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
         $(this.data.items[i]).attr("data-index", i);
     }
     for (var i = flankdisplaycount + 1; i < this.data.totalItems; i++) {
-        if (i % 2 == 1)
-        {
+        if (i % 2 == 1) {
             this.data.calculations.push({
                 distance: 0,
                 opacity: 0,
@@ -157,9 +148,7 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
             });
             this.index[i] = j;
             this.data.orientation.push(i);
-        }
-        else
-        {
+        } else {
             this.data.calculations.unshift({
                 distance: 0,
                 opacity: 0,
@@ -171,7 +160,7 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
         }
         $(this.data.items[i]).attr("data-index", i);
     }
-    
+
     this.data.maxDistance = 100 + (seperation * 2);
     //console.log(this.data.maxDistance);
     //console.log("MaxWidth= " + this.data.maxDistance * 152 / 100);
@@ -180,16 +169,14 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
 swiperobin.prototype.setupRobin = function(subsequent) {
     var i = 0;
 
-    if(typeof subsequent === 'undefined')
-    {
+    if (typeof subsequent === 'undefined') {
         this.data.items.each(function() {
             $(this).css({
                 left: 0
             });
         });
     }
-    for(var i = 0; i < this.data.totalItems; i++)
-    {
+    for (var i = 0; i < this.data.totalItems; i++) {
         //console.log(this.data.orientation[i], i, this.data.calculations[this.data.orientation[i]]);
         $(this.data.items[this.data.orientation[i]]).transition({
             position: 'absolute',
@@ -203,41 +190,66 @@ swiperobin.prototype.setupRobin = function(subsequent) {
     }
 }
 
-swiperobin.prototype.HandleClicks = function() 
-{
-    this.data.items.unbind().bind("click", this, function(e){
+swiperobin.prototype.HandleClicks = function() {
+    this.data.items.unbind().bind("click", this, function(e) {
         var myPosition = $(this).attr("data-index");
         var myIndex = -1;
         var obj = e.data;
-        for(var i = 0; i < obj.data.totalItems; i++)
-        {
-            if(myPosition == obj.data.orientation[i])
-            {
+        for (var i = 0; i < obj.data.totalItems; i++) {
+            if (myPosition == obj.data.orientation[i]) {
                 myIndex = i;
                 break;
             }
         }
-        if(myIndex >= 0)
-        {
+        if (myIndex >= 0) {
             var left = [];
             var right = [];
-            var halfLength = parseInt((obj.data.totalItems-1)/2);
-            if(myIndex > halfLength)
-            {
+            var halfLength = parseInt((obj.data.totalItems - 1) / 2);
+            if (myIndex > halfLength) {
                 left = obj.data.orientation.slice(myIndex - halfLength);
                 right = obj.data.orientation.slice(0, myIndex - halfLength);
-            }
-            else
-            {
-                left = obj.data.orientation.slice(obj.data.totalItems- halfLength + myIndex);
-                right = obj.data.orientation.slice(0, obj.data.totalItems- halfLength + myIndex); 
+            } else {
+                left = obj.data.orientation.slice(obj.data.totalItems - halfLength + myIndex);
+                right = obj.data.orientation.slice(0, obj.data.totalItems - halfLength + myIndex);
             }
             obj.data.orientation = left.concat(right);
+            console.log(obj.data.orientation);
             obj.setupRobin(true);
         }
     });
 };
 
+swiperobin.prototype.HandleDrag = function() {
+    //console.log(this.data.items[0]);
+    //console.log(document.querySelectorAll('.basecard .mycard')[0]);
+    /*for (var i = 0; i < this.data.totalItems; i++) {
+        this.data.items[i].addEventListener("dragstart", function(e) {
+            var crt = this.cloneNode(true);
+            crt.style.backgroundColor = "red";
+            crt.style.position = "absolute";
+            crt.style.top = "0px";
+            crt.style.right = "0px";
+            document.body.appendChild(crt);
+            e.dataTransfer.setDragImage(crt, 0, 0);
+        }, false);
+    }*/
+    var obj = this.data;
+    for (var i = 0; i < this.data.totalItems; i++) {
+        this.data.items[i].addEventListener("dragstart", function(e) {
+            obj.preview = this.cloneNode(true);
+            obj.preview.style.backgroundColor = "red";
+            obj.preview.style.display = "none"; /* or visibility: hidden, or any of the above */
+            document.body.appendChild(obj.preview);
+            e.dataTransfer.setDragImage(obj.preview, 0, 0);
+        }, false);
+        this.data.items[i].addEventListener("dragend", function(e) {
+            document.body.removeChild(obj.preview);
+
+
+        }, false);
+    }
+
+}
 
 
 swiperobin.prototype.reSize = function() {
