@@ -15,9 +15,10 @@ var swiperobin = function() {
         calculations: [],
         orientation: [],
         maxDistance: 0,
-        clickx: 0,
-        movex: 0,
-        preview: 0
+        cordstart: 0,
+        cordend: 0,
+        preview: 0,
+        touchflag: 0,
     }
 
     this.index = {
@@ -191,6 +192,7 @@ swiperobin.prototype.setupRobin = function(subsequent) {
 }
 
 swiperobin.prototype.HandleClicks = function() {
+    console.log(this.data.orientation);
     this.data.items.unbind().bind("click", this, function(e) {
         var myPosition = $(this).attr("data-index");
         var myIndex = -1;
@@ -198,6 +200,7 @@ swiperobin.prototype.HandleClicks = function() {
         for (var i = 0; i < obj.data.totalItems; i++) {
             if (myPosition == obj.data.orientation[i]) {
                 myIndex = i;
+                console.log(myIndex);
                 break;
             }
         }
@@ -219,43 +222,74 @@ swiperobin.prototype.HandleClicks = function() {
     });
 };
 
+
 swiperobin.prototype.HandleDrag = function() {
-    //console.log(this.data.items[0]);
-    //console.log(document.querySelectorAll('.basecard .mycard')[0]);
-    /*for (var i = 0; i < this.data.totalItems; i++) {
-        this.data.items[i].addEventListener("dragstart", function(e) {
-            var crt = this.cloneNode(true);
-            crt.style.backgroundColor = "red";
-            crt.style.position = "absolute";
-            crt.style.top = "0px";
-            crt.style.right = "0px";
-            document.body.appendChild(crt);
-            e.dataTransfer.setDragImage(crt, 0, 0);
-        }, false);
-    }*/
     var obj = this.data;
     for (var i = 0; i < this.data.totalItems; i++) {
         this.data.items[i].addEventListener("dragstart", function(e) {
             obj.preview = this.cloneNode(true);
             obj.preview.style.backgroundColor = "red";
             obj.preview.style.display = "none"; /* or visibility: hidden, or any of the above */
-            document.body.appendChild(obj.preview);
+            //document.body.appendChild(obj.preview);
             e.dataTransfer.setDragImage(obj.preview, 0, 0);
+
+            obj.cordstart = e.clientX;
+            //console.log(obj.cordstart);
+
+        }, false);
+        this.data.items[i].addEventListener("mousemove", function(e){
+
         }, false);
         this.data.items[i].addEventListener("dragend", function(e) {
-            document.body.removeChild(obj.preview);
-
+            
+            obj.cordend = e.clientX;
+            //document.body.removeChild(obj.preview);
+            if(obj.cordstart > obj.cordend)
+            {
+                //console.log('left swipe');
+            }
+            else {
+                //console.log('right swipe');
+            }
 
         }, false);
-    }
+        this.data.items[i].addEventListener("touchstart", function(e) {
 
+            obj.cordstart = e.touches[0].clientX;
+            //console.log('touch start');
+        });
+        this.data.items[i].addEventListener("touchmove", function(e) {
+            obj.cordend = e.touches[0].clientX;
+        });
+        this.data.items[i].addEventListener("touchend", function(e) {
+            //console.log(obj.cordstart,obj.cordend);
+            myIndex = -1;
+            var left = [];
+            var right = [];
+            if(obj.cordend < (obj.cordstart - 15))
+                myIndex = 5;
+            if(obj.cordend > (obj.cordstart + 15))
+                myIndex = 3;
+            var halfLength = parseInt((obj.totalItems - 1) / 2);
+            if (myIndex > halfLength) {
+                left = obj.orientation.slice(myIndex - halfLength);
+                right = obj.orientation.slice(0, myIndex - halfLength);
+            } else {
+                left = obj.orientation.slice(obj.totalItems - halfLength + myIndex);
+                right = obj.orientation.slice(0, obj.totalItems - halfLength + myIndex);
+            }
+            obj.orientation = left.concat(right);
+            console.log(obj.orientation);
+            this.setupRobin(true);
+        }.bind(this));
+    }
 }
 
 
 swiperobin.prototype.reSize = function() {
 
     $(window).resize(function() {
-        console.log($(window).width()); // New height
+        //console.log($(window).width()); // New height
 
     });
 }
