@@ -266,10 +266,14 @@ swiperobin.prototype.HandleDrag = function() {
             myIndex = -1;
             var left = [];
             var right = [];
-            if(obj.cordend < (obj.cordstart - 15))
+            if(obj.cordend < (obj.cordstart - 50))
                 myIndex = 5;
-            if(obj.cordend > (obj.cordstart + 15))
+            else if(obj.cordend > (obj.cordstart + 50))
                 myIndex = 3;
+            else
+            {
+                
+            }
             var halfLength = parseInt((obj.totalItems - 1) / 2);
             if (myIndex > halfLength) {
                 left = obj.orientation.slice(myIndex - halfLength);
