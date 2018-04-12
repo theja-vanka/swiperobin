@@ -13,6 +13,7 @@ var swiperobin = function() {
         items: [],
         totalItems: 0,
         calculations: [],
+        calculationsCopyDistance: [],
         orientation: [],
         maxDistance: 0,
         cordstart: 0,
@@ -165,12 +166,20 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
         $(this.data.items[i]).attr("data-index", i);
     }
 
+    for(var i = 0 ; i<this.data.totalItems;i++)
+    {
+        this.data.calculationsCopyDistance[i] = this.data.calculations[i].distance;
+        //console.log(this.data.calculations[i].distance, this.data.calculationsCopyDistance[i]);
+    }
+    var middle = (this.data.calculations.length - 1) / 2;
+    var mmax = middle + this.defaults.flankingItems;
+    this.data.maxDistance = this.defaults.forcedImageWidth + (((this.defaults.forcedImageWidth * parseInt(this.data.calculations[mmax].distance) / 100) - (((1 - this.data.calculations[mmax].scale) / 2) * this.defaults.forcedImageWidth)) * 2);
+
 }
 
 swiperobin.prototype.setupRobin = function(subsequent) {
     var i = 0;
-    var middle = (this.data.calculations.length - 1) / 2;
-    var mmax = middle + this.defaults.flankingItems;
+ 
     //console.log(mmax);
 
     if (typeof subsequent === 'undefined') {
@@ -192,7 +201,6 @@ swiperobin.prototype.setupRobin = function(subsequent) {
             opacity: this.data.calculations[i].opacity,
         }, this.defaults.speed);
     }
-    this.data.maxDistance = this.defaults.forcedImageWidth + (((this.defaults.forcedImageWidth * parseInt(this.data.calculations[mmax].distance) / 100) - (((1 - this.data.calculations[mmax].scale) / 2) * this.defaults.forcedImageWidth)) * 2);
     //console.log(this.data.maxDistance);
 }
 
@@ -233,6 +241,10 @@ swiperobin.prototype.HandleDrag = function() {
     for (var i = 0; i < this.data.totalItems; i++) {
         this.data.items[i].addEventListener("dragstart", function(e) {
             e.dataTransfer.setData("text/plain", "hi");
+            var crt = this.cloneNode(true);
+            crt.style.backgroundColor = "red";
+            document.body.appendChild(crt);
+            e.dataTransfer.setDragImage(crt, 0, 0);
             obj.cordstart = e.clientX;
             console.log(obj.cordstart);
 
@@ -332,23 +344,23 @@ swiperobin.prototype.reSize = function() {
                 }
             }
             obj.setupRobin(true);
-        } else if ($(this).width() > maxObj && maxObj < maxRef) {
+        } else if ($(this).width() > maxObj) {
             var diff = $(this).width() - maxObj;
             var percent = (diff / 1.5);
            for (var i = middle - flank; i <= middle + flank; i++) {
-                /*if (i < middle)
+                if (i < middle)
                 {
-                    if(parseInt(obj.data.calculations[i].distance)+percent < parseInt(obj.data.calculations[i].distance) )
-                        obj.data.calculations[i].distance = -50 + "%";
+                    if(parseInt(obj.data.calculations[i].distance)-percent < parseInt(obj.data.calculationsCopyDistance[i])) 
+                        obj.data.calculations[i].distance = obj.data.calculationsCopyDistance[i];
                     else
                     obj.data.calculations[i].distance = (parseInt(obj.data.calculations[i].distance) - percent) + "%";
                 }
                 if (i > middle){
-                    if(parseInt(obj.data.calculations[i].distance)-percent < 10 )
-                        obj.data.calculations[i].distance = 10 + "%";
+                    if(parseInt(obj.data.calculations[i].distance)+percent > parseInt(obj.data.calculationsCopyDistance[i]))
+                        obj.data.calculations[i].distance = obj.data.calculationsCopyDistance[i];
                     else
                     obj.data.calculations[i].distance = (parseInt(obj.data.calculations[i].distance) + percent) + "%";
-                }*/
+                }
             }
             obj.setupRobin(true);
         } else {
