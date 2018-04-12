@@ -210,10 +210,11 @@ swiperobin.prototype.HandleClicks = function() {
         var myPosition = $(this).attr("data-index");
         var myIndex = -1;
         var obj = e.data;
+        console.log("click");
         for (var i = 0; i < obj.data.totalItems; i++) {
             if (myPosition == obj.data.orientation[i]) {
                 myIndex = i;
-                console.log(myIndex);
+                console.log("ind:" +myIndex);
                 break;
             }
         }
@@ -241,12 +242,7 @@ swiperobin.prototype.HandleDrag = function() {
     for (var i = 0; i < this.data.totalItems; i++) {
         this.data.items[i].addEventListener("dragstart", function(e) {
             e.dataTransfer.setData("text/plain", "hi");
-            var crt = this.cloneNode(true);
-            crt.style.backgroundColor = "red";
-            document.body.appendChild(crt);
-            e.dataTransfer.setDragImage(crt, 0, 0);
             obj.cordstart = e.clientX;
-            console.log(obj.cordstart);
 
         }, false);
         this.data.items[i].addEventListener("mousemove", function(e) {
@@ -254,45 +250,56 @@ swiperobin.prototype.HandleDrag = function() {
 
         }, false);
         this.data.items[i].addEventListener("dragend", function(e) {
-            console.log(obj.cordend);
             if (obj.cordstart > obj.cordend) {
                 console.log('left swipe');
             } else {
                 console.log('right swipe');
             }
 
-        }, false);
+        });
         this.data.items[i].addEventListener("touchstart", function(e) {
+            
 
             obj.cordstart = e.touches[0].clientX;
+            obj.cordend = e.touches[0].clientX;
             //console.log('touch start');
         });
         this.data.items[i].addEventListener("touchmove", function(e) {
             obj.cordend = e.touches[0].clientX;
         });
         this.data.items[i].addEventListener("touchend", function(e) {
+            console.log("touchend");
             //console.log(obj.cordstart,obj.cordend);
-            myIndex = -1;
-            var left = [];
-            var right = [];
-            if (obj.cordend < (obj.cordstart - 50))
-                myIndex = 5;
-            else if (obj.cordend > (obj.cordstart + 50))
-                myIndex = 3;
-            else {
-
+            var myIndext = -1;
+            if (obj.cordend > (obj.cordstart - 20) && obj.cordend < (obj.cordstart + 20))
+            {  
+                this.HandleClicks();
             }
+            else if (obj.cordend > (obj.cordstart + 75)){
+                e.preventDefault();
+                myIndext = 3;
+            }
+            else if (obj.cordend < (obj.cordstart - 75)){
+                e.preventDefault();
+                 myIndext = 5;
+                console.log(obj.cordend,obj.cordstart);
+            }
+            else {}
+            if (myIndext >= 0){
+                var left = [];
+                var right = [];
             var halfLength = parseInt((obj.totalItems - 1) / 2);
-            if (myIndex > halfLength) {
-                left = obj.orientation.slice(myIndex - halfLength);
-                right = obj.orientation.slice(0, myIndex - halfLength);
-            } else {
-                left = obj.orientation.slice(obj.totalItems - halfLength + myIndex);
-                right = obj.orientation.slice(0, obj.totalItems - halfLength + myIndex);
+            if (myIndext > halfLength) {
+                left = obj.orientation.slice(myIndext - halfLength);
+                right = obj.orientation.slice(0, myIndext - halfLength);
+            }else {
+                left = obj.orientation.slice(obj.totalItems - halfLength + myIndext);
+                right = obj.orientation.slice(0, obj.totalItems - halfLength + myIndext);
             }
             obj.orientation = left.concat(right);
             //console.log(obj.orientation);
             this.setupRobin(true);
+        }
         }.bind(this));
     }
 }
