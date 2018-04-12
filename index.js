@@ -232,28 +232,21 @@ swiperobin.prototype.HandleDrag = function() {
     var obj = this.data;
     for (var i = 0; i < this.data.totalItems; i++) {
         this.data.items[i].addEventListener("dragstart", function(e) {
-            //obj.preview = this.cloneNode(true);
-            //obj.preview.style.backgroundColor = "red";
-            //obj.preview.style.display = "none"; /* or visibility: hidden, or any of the above */
-            //document.body.appendChild(obj.preview);
             e.dataTransfer.setData("text/plain", "hi");
-            //e.dataTransfer.setDragImage(obj.preview, 0, 0);
-
             obj.cordstart = e.clientX;
             console.log(obj.cordstart);
 
         }, false);
         this.data.items[i].addEventListener("mousemove", function(e) {
+            obj.cordend = e.clientX;
 
         }, false);
         this.data.items[i].addEventListener("dragend", function(e) {
-
-            obj.cordend = e.clientX;
-            //document.body.removeChild(obj.preview);
+            console.log(obj.cordend);
             if (obj.cordstart > obj.cordend) {
-                //console.log('left swipe');
+                console.log('left swipe');
             } else {
-                //console.log('right swipe');
+                console.log('right swipe');
             }
 
         }, false);
@@ -294,27 +287,74 @@ swiperobin.prototype.HandleDrag = function() {
 
 
 swiperobin.prototype.reSize = function() {
+
+    var flag = false;
+    var obj = this;
+    var cardw = this.defaults.forcedImageWidth/2;
+    var maxObj = this.data.maxDistance;
+    var maxRef = this.data.maxDistance;
     var middle = (this.data.calculations.length - 1) / 2;
-    var maxsize = this.data.maxDistance;
-    var obj = this.data.calculations;
     var flank = this.defaults.flankingItems;
-    var set = this;
-    $(window).on("resize", this ,function() {
-             if( $(window).width() < maxsize + 10){
-                for(i = middle-flank, j = flank; i <= middle+flank; i++ , j--)
-                {
-                    if(i < middle)
-                    {
-                        obj[i].distance = parseInt(obj[i].distance)+j + "%";
-                    }
-                    else if(i > middle)
-                    {
-                        obj[i].distance = parseInt(obj[i].distance)+j + "%";
-                    }
-                    else {}
-                }
-                set.setupRobin(true);
-                maxsize -=9;
+
+    $.fn.resizeEnd = function(callback, timeout) {
+        $(window).resize(function() {
+            if (flag == false) {
+                flag = true;
+                console.log("disappear");
+
             }
-    });
+            if ($(this).data('scrollTimeout')) {
+                clearTimeout($(this).data('scrollTimeout'));
+            }
+            $(this).data('scrollTimeout', setTimeout(callback, timeout));
+        });
+    };
+    // how to call it (with a 1000ms timeout):
+    $(window).resizeEnd(function() {
+        console.log("appear");
+
+        if ($(this).width() < maxObj) {
+            var diff = maxObj - $(this).width();
+            var percent = (diff / 1.5);
+            for (var i = middle - flank, j = -60; i <= middle + flank; i++, j +=20) {
+                if (i < middle)
+                {
+                    if(parseInt(obj.data.calculations[i].distance)+percent > -20+j )
+                        obj.data.calculations[i].distance = -20+j + "%";
+                    else
+                    obj.data.calculations[i].distance = (parseInt(obj.data.calculations[i].distance) + percent) + "%";
+                }
+                if (i > middle){
+                    if(parseInt(obj.data.calculations[i].distance)-percent < 20+j )
+                        obj.data.calculations[i].distance = 20+j + "%";
+                    else
+                    obj.data.calculations[i].distance = (parseInt(obj.data.calculations[i].distance) - percent) + "%";
+                }
+            }
+            obj.setupRobin(true);
+        } else if ($(this).width() > maxObj && maxObj < maxRef) {
+            var diff = $(this).width() - maxObj;
+            var percent = (diff / 1.5);
+           for (var i = middle - flank; i <= middle + flank; i++) {
+                /*if (i < middle)
+                {
+                    if(parseInt(obj.data.calculations[i].distance)+percent < parseInt(obj.data.calculations[i].distance) )
+                        obj.data.calculations[i].distance = -50 + "%";
+                    else
+                    obj.data.calculations[i].distance = (parseInt(obj.data.calculations[i].distance) - percent) + "%";
+                }
+                if (i > middle){
+                    if(parseInt(obj.data.calculations[i].distance)-percent < 10 )
+                        obj.data.calculations[i].distance = 10 + "%";
+                    else
+                    obj.data.calculations[i].distance = (parseInt(obj.data.calculations[i].distance) + percent) + "%";
+                }*/
+            }
+            obj.setupRobin(true);
+        } else {
+            console.log('hello');
+        }
+        flag = false;
+
+    }, 400);
 }
