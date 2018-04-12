@@ -108,7 +108,6 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
         flankdisplaycount = this.data.totalItems - 1;
     }
 
-    this.data.maxDistance = 100;
 
     for (var i = 1; i <= flankdisplaycount; i++, j = parseInt((i + 1) / 2)) {
         if (i % 2 == 1) {
@@ -127,7 +126,6 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
             this.index[i] = j;
             this.data.orientation.push(i);
         } else {
-            this.data.maxDistance += (scale * (75 / j));
 
             this.data.calculations.unshift({
                 distance: -seperation + '%',
@@ -167,11 +165,13 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
         $(this.data.items[i]).attr("data-index", i);
     }
 
-    //console.log("MaxWidth= " + this.data.maxDistance * 152 / 100);
 }
 
 swiperobin.prototype.setupRobin = function(subsequent) {
     var i = 0;
+    var middle = (this.data.calculations.length-1)/2;
+    var mmax = middle + this.defaults.flankingItems;
+    console.log(mmax);
 
     if (typeof subsequent === 'undefined') {
         this.data.items.each(function() {
@@ -191,10 +191,9 @@ swiperobin.prototype.setupRobin = function(subsequent) {
             zIndex: this.data.calculations[i].zindex,
             opacity: this.data.calculations[i].opacity,
         }, this.defaults.speed);
-        this.data.maxDistance = this.data.calculations[i].cover;
-        console.log(this.data.maxDistance);
     }
-    
+    this.data.maxDistance = this.defaults.forcedImageWidth+(((this.defaults.forcedImageWidth * parseInt(this.data.calculations[mmax].distance) / 100) - (((1 - this.data.calculations[mmax].scale)/2)*this.defaults.forcedImageWidth))*2);
+    console.log(this.data.maxDistance);
 }
 
 swiperobin.prototype.HandleClicks = function() {
