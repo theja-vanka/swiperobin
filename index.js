@@ -77,7 +77,7 @@ swiperobin.prototype.setOriginalItemDimensions = function() {
 swiperobin.prototype.preCalculatePositionProperties = function() {
     // The 0 index is the center item in the carousel
     var Item = this.data.itemsContainer;
-    var midpoint = $(window).width()/2;
+    var midpoint = $(window).width() / 2;
     Item.css({
         'margin': 'auto',
         'display': 'block',
@@ -114,7 +114,7 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
             opacity -= this.defaults.opacityDifference;
             scale *= this.defaults.sizeMultiplier;
             seperation += (75 / j);
-            cover = ((this.defaults.forcedImageWidth / 2)+(this.defaults.forcedImageWidth * seperation / 100) - (((1 - scale)/2)*this.defaults.forcedImageWidth));
+            cover = ((this.defaults.forcedImageWidth / 2) + (this.defaults.forcedImageWidth * seperation / 100) - (((1 - scale) / 2) * this.defaults.forcedImageWidth));
 
             this.data.calculations.push({
                 distance: seperation + '%',
@@ -169,9 +169,9 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
 
 swiperobin.prototype.setupRobin = function(subsequent) {
     var i = 0;
-    var middle = (this.data.calculations.length-1)/2;
+    var middle = (this.data.calculations.length - 1) / 2;
     var mmax = middle + this.defaults.flankingItems;
-    console.log(mmax);
+    //console.log(mmax);
 
     if (typeof subsequent === 'undefined') {
         this.data.items.each(function() {
@@ -192,12 +192,12 @@ swiperobin.prototype.setupRobin = function(subsequent) {
             opacity: this.data.calculations[i].opacity,
         }, this.defaults.speed);
     }
-    this.data.maxDistance = this.defaults.forcedImageWidth+(((this.defaults.forcedImageWidth * parseInt(this.data.calculations[mmax].distance) / 100) - (((1 - this.data.calculations[mmax].scale)/2)*this.defaults.forcedImageWidth))*2);
-    console.log(this.data.maxDistance);
+    this.data.maxDistance = this.defaults.forcedImageWidth + (((this.defaults.forcedImageWidth * parseInt(this.data.calculations[mmax].distance) / 100) - (((1 - this.data.calculations[mmax].scale) / 2) * this.defaults.forcedImageWidth)) * 2);
+    //console.log(this.data.maxDistance);
 }
 
 swiperobin.prototype.HandleClicks = function() {
-    console.log(this.data.orientation);
+    //console.log(this.data.orientation);
     this.data.items.unbind().bind("click", this, function(e) {
         var myPosition = $(this).attr("data-index");
         var myIndex = -1;
@@ -221,7 +221,7 @@ swiperobin.prototype.HandleClicks = function() {
                 right = obj.data.orientation.slice(0, obj.data.totalItems - halfLength + myIndex);
             }
             obj.data.orientation = left.concat(right);
-            console.log(obj.data.orientation);
+            //console.log(obj.data.orientation);
             obj.setupRobin(true);
         }
     });
@@ -243,18 +243,16 @@ swiperobin.prototype.HandleDrag = function() {
             console.log(obj.cordstart);
 
         }, false);
-        this.data.items[i].addEventListener("mousemove", function(e){
+        this.data.items[i].addEventListener("mousemove", function(e) {
 
         }, false);
         this.data.items[i].addEventListener("dragend", function(e) {
-            
+
             obj.cordend = e.clientX;
             //document.body.removeChild(obj.preview);
-            if(obj.cordstart > obj.cordend)
-            {
+            if (obj.cordstart > obj.cordend) {
                 //console.log('left swipe');
-            }
-            else {
+            } else {
                 //console.log('right swipe');
             }
 
@@ -272,13 +270,12 @@ swiperobin.prototype.HandleDrag = function() {
             myIndex = -1;
             var left = [];
             var right = [];
-            if(obj.cordend < (obj.cordstart - 50))
+            if (obj.cordend < (obj.cordstart - 50))
                 myIndex = 5;
-            else if(obj.cordend > (obj.cordstart + 50))
+            else if (obj.cordend > (obj.cordstart + 50))
                 myIndex = 3;
-            else
-            {
-                
+            else {
+
             }
             var halfLength = parseInt((obj.totalItems - 1) / 2);
             if (myIndex > halfLength) {
@@ -289,7 +286,7 @@ swiperobin.prototype.HandleDrag = function() {
                 right = obj.orientation.slice(0, obj.totalItems - halfLength + myIndex);
             }
             obj.orientation = left.concat(right);
-            console.log(obj.orientation);
+            //console.log(obj.orientation);
             this.setupRobin(true);
         }.bind(this));
     }
@@ -297,9 +294,27 @@ swiperobin.prototype.HandleDrag = function() {
 
 
 swiperobin.prototype.reSize = function() {
-
-    $(window).resize(function() {
-        //console.log($(window).width()); // New height
-
+    var middle = (this.data.calculations.length - 1) / 2;
+    var maxsize = this.data.maxDistance;
+    var obj = this.data.calculations;
+    var flank = this.defaults.flankingItems;
+    var set = this;
+    $(window).on("resize", this ,function() {
+             if( $(window).width() < maxsize + 10){
+                for(i = middle-flank; i <= middle+flank; i ++)
+                {
+                    if(i < middle)
+                    {
+                        obj[i].distance = parseInt(obj[i].distance)+1 + "%";
+                    }
+                    else if(i > middle)
+                    {
+                        obj[i].distance = parseInt(obj[i].distance)-1 + "%";
+                    }
+                    else {}
+                }
+                set.setupRobin(true);
+                maxsize -=3;
+            }
     });
 }
