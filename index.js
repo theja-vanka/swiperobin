@@ -301,20 +301,20 @@ swiperobin.prototype.reSize = function() {
     var set = this;
     $(window).on("resize", this ,function() {
              if( $(window).width() < maxsize + 10){
-                for(i = middle-flank; i <= middle+flank; i ++)
+                for(i = middle-flank, j = flank; i <= middle+flank; i++ , j--)
                 {
                     if(i < middle)
                     {
-                        obj[i].distance = parseInt(obj[i].distance)+1 + "%";
+                        obj[i].distance = parseInt(obj[i].distance)+j + "%";
                     }
                     else if(i > middle)
                     {
-                        obj[i].distance = parseInt(obj[i].distance)-1 + "%";
+                        obj[i].distance = parseInt(obj[i].distance)+j + "%";
                     }
                     else {}
                 }
                 set.setupRobin(true);
-                maxsize -=3;
+                maxsize -=9;
             }
     });
 }
