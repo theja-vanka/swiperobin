@@ -233,14 +233,15 @@ swiperobin.prototype.HandleDrag = function() {
     var obj = this.data;
     for (var i = 0; i < this.data.totalItems; i++) {
         this.data.items[i].addEventListener("dragstart", function(e) {
-            obj.preview = this.cloneNode(true);
-            obj.preview.style.backgroundColor = "red";
-            obj.preview.style.display = "none"; /* or visibility: hidden, or any of the above */
+            //obj.preview = this.cloneNode(true);
+            //obj.preview.style.backgroundColor = "red";
+            //obj.preview.style.display = "none"; /* or visibility: hidden, or any of the above */
             //document.body.appendChild(obj.preview);
-            e.dataTransfer.setDragImage(obj.preview, 0, 0);
+            e.dataTransfer.setData("text/plain", "hi");
+            //e.dataTransfer.setDragImage(obj.preview, 0, 0);
 
             obj.cordstart = e.clientX;
-            //console.log(obj.cordstart);
+            console.log(obj.cordstart);
 
         }, false);
         this.data.items[i].addEventListener("mousemove", function(e){
