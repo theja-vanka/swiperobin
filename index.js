@@ -1,16 +1,24 @@
 $(document).ready(function() {
-    var krishna = new swiperobin();
-    krishna.init();
+    var categorySld = new swiperobin();
+    categorySld.init();
 });
 
 
-var swiperobin = function() {
+var swiperobin = function(container, basecardCls, itemCls, cardHeight, cardWidth) {
+    if(typeof container === 'undefined')
+    {
+        container = $(".container-fluid");
+        basecardCls = "basecard";
+        itemCls = "mycard";
+        cardHeight = 206;
+        cardWidth = 150;
+    }
     this.data = {
-        itemsContainer: $(".basecard"),
-        container: $(".basecard").parents(".container-fluid"),
+        container: container,
+        itemsContainer: container.find($('.'+basecardCls)),
         containerWidth: 0,
         containerHeight: 0,
-        items: [],
+        items: container.find($('.'+itemCls)),
         totalItems: 0,
         calculations: [],
         calculationsCopyDistance: [],
@@ -20,11 +28,9 @@ var swiperobin = function() {
         cordend: 0,
         preview: 0,
         touchflag: 0,
-    }
-
-    this.index = {
-        0: 0
-    }
+    };
+    this.data.totalItems = this.data.items.length;
+    
     this.defaults = {
         startingItem: 0,
         seperation: 0, //in percentage
@@ -40,10 +46,10 @@ var swiperobin = function() {
         quickerForFurther: true,
         orientation: 'horizontal',
         activeClassName: 'active',
-        forcedImageWidth: 150,
-        forcedImageHeight: 206,
-    }
-}
+        forcedImageWidth: cardWidth,
+        forcedImageHeight: cardHeight,
+    };
+};
 
 swiperobin.prototype.init = function() {
     this.setOriginalItemDimensions();
@@ -52,12 +58,9 @@ swiperobin.prototype.init = function() {
     this.HandleClicks();
     this.HandleDrag();
     this.reSize();
-}
+};
 
 swiperobin.prototype.setOriginalItemDimensions = function() {
-
-    this.data.items = this.data.container.find('div.mycard');
-    this.data.totalItems = this.data.items.length;
 
     this.data.items.each(function() {
         if ($(this).attr('original_width') == undefined) {
@@ -73,7 +76,7 @@ swiperobin.prototype.setOriginalItemDimensions = function() {
             .height(this.defaults.forcedImageHeight);
     }
 
-}
+};
 
 swiperobin.prototype.preCalculatePositionProperties = function() {
     // The 0 index is the center item in the carousel
@@ -93,8 +96,7 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
         zindex: 0,
         cover: midpoint
     }];
-    this.index[0] = 0;
-
+    
     $(this.data.items[0]).attr("data-index", 0);
     this.data.orientation = [0];
 
@@ -107,6 +109,7 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
     var calcDistance = 0;
     if ((flankdisplaycount + 1) > this.data.totalItems) {
         flankdisplaycount = this.data.totalItems - 1;
+        this.defaults.flankingItems = parseInt((this.data.totalItems - 1)/2);
     }
 
 
@@ -124,7 +127,6 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
                 zindex: -j,
                 cover: (midpoint + cover),
             });
-            this.index[i] = j;
             this.data.orientation.push(i);
         } else {
 
@@ -135,7 +137,6 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
                 zindex: -j,
                 cover: (midpoint - cover),
             });
-            this.index[i] = -j;
             this.data.orientation.unshift(i);
         }
 
@@ -150,7 +151,6 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
                 zindex: -this.data.totalItems,
                 cover: 0,
             });
-            this.index[i] = j;
             this.data.orientation.push(i);
         } else {
             this.data.calculations.unshift({
@@ -160,7 +160,6 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
                 zindex: -this.data.totalItems,
                 cover: 0
             });
-            this.index[i] = -j;
             this.data.orientation.unshift(i);
         }
         $(this.data.items[i]).attr("data-index", i);
@@ -171,17 +170,14 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
         this.data.calculationsCopyDistance[i] = this.data.calculations[i].distance;
         //console.log(this.data.calculations[i].distance, this.data.calculationsCopyDistance[i]);
     }
-    var middle = (this.data.calculations.length - 1) / 2;
+    var middle = parseInt((this.data.calculations.length - 1) / 2);
     var mmax = middle + this.defaults.flankingItems;
     this.data.maxDistance = this.defaults.forcedImageWidth + (((this.defaults.forcedImageWidth * parseInt(this.data.calculations[mmax].distance) / 100) - (((1 - this.data.calculations[mmax].scale) / 2) * this.defaults.forcedImageWidth)) * 2);
 
-}
+};
 
 swiperobin.prototype.setupRobin = function(subsequent) {
     var i = 0;
- 
-    //console.log(mmax);
-
     if (typeof subsequent === 'undefined') {
         this.data.items.each(function() {
             $(this).css({
@@ -190,7 +186,12 @@ swiperobin.prototype.setupRobin = function(subsequent) {
         });
     }
     for (var i = 0; i < this.data.totalItems; i++) {
-        //console.log(this.data.orientation[i], i, this.data.calculations[this.data.orientation[i]]);
+        $(this.data.items[this.data.orientation[i]]).removeClass("active");
+        if(this.data.calculations[i].distance == 0)
+        {
+            $(this.data.items[this.data.orientation[i]]).addClass("active");
+        }
+        
         $(this.data.items[this.data.orientation[i]]).transition({
             position: 'absolute',
             height: 'inherit',
@@ -200,9 +201,8 @@ swiperobin.prototype.setupRobin = function(subsequent) {
             zIndex: this.data.calculations[i].zindex,
             opacity: this.data.calculations[i].opacity,
         }, this.defaults.speed);
-    }
-    //console.log(this.data.maxDistance);
-}
+    }    
+};
 
 swiperobin.prototype.HandleClicks = function() {
     //console.log(this.data.orientation);
@@ -277,11 +277,11 @@ swiperobin.prototype.HandleDrag = function() {
             }
             else if (obj.cordend > (obj.cordstart + 75)){
                 e.preventDefault();
-                myIndext = 3;
+                myIndext = parseInt((obj.totalItems - 1) / 2)-1;
             }
             else if (obj.cordend < (obj.cordstart - 75)){
                 e.preventDefault();
-                 myIndext = 5;
+                 myIndext = parseInt((obj.totalItems - 1) / 2)+1;
                 console.log(obj.cordend,obj.cordstart);
             }
             else {}
@@ -302,7 +302,7 @@ swiperobin.prototype.HandleDrag = function() {
         }
         }.bind(this));
     }
-}
+};
 
 
 swiperobin.prototype.reSize = function() {
@@ -312,14 +312,14 @@ swiperobin.prototype.reSize = function() {
     var cardw = this.defaults.forcedImageWidth/2;
     var maxObj = this.data.maxDistance;
     var maxRef = this.data.maxDistance;
-    var middle = (this.data.calculations.length - 1) / 2;
+    var middle = parseInt(this.data.calculations.length - 1) / 2;
     var flank = this.defaults.flankingItems;
 
     $.fn.resizeEnd = function(callback, timeout) {
         $(window).resize(function() {
             if (flag == false) {
                 flag = true;
-                console.log("disappear");
+                console.log(middle);
 
             }
             if ($(this).data('scrollTimeout')) {
@@ -330,22 +330,22 @@ swiperobin.prototype.reSize = function() {
     };
     // how to call it (with a 1000ms timeout):
     $(window).resizeEnd(function() {
-        console.log("appear");
+        console.log(middle);
 
         if ($(this).width() < maxObj) {
             var diff = maxObj - $(this).width();
             var percent = (diff / 1.5);
-            for (var i = middle - flank, j = -60; i <= middle + flank; i++, j +=20) {
+            for (var i = middle + flank, j = (20*flank); i <= middle - flank; i--, j -=20) {
                 if (i < middle)
                 {
-                    if(parseInt(obj.data.calculations[i].distance)+percent > -20+j )
-                        obj.data.calculations[i].distance = -20+j + "%";
+                    if(parseInt(obj.data.calculations[i].distance)+percent > -10+j )
+                        obj.data.calculations[i].distance = -10+j + "%";
                     else
                     obj.data.calculations[i].distance = (parseInt(obj.data.calculations[i].distance) + percent) + "%";
                 }
                 if (i > middle){
-                    if(parseInt(obj.data.calculations[i].distance)-percent < 20+j )
-                        obj.data.calculations[i].distance = 20+j + "%";
+                    if(parseInt(obj.data.calculations[i].distance)-percent < 10+j )
+                        obj.data.calculations[i].distance = 10+j + "%";
                     else
                     obj.data.calculations[i].distance = (parseInt(obj.data.calculations[i].distance) - percent) + "%";
                 }
@@ -376,4 +376,4 @@ swiperobin.prototype.reSize = function() {
         flag = false;
 
     }, 400);
-}
+};
