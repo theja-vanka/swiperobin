@@ -108,9 +108,9 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
     var j = 1;
     var calcDistance = 0;
     if ((flankdisplaycount + 1) > this.data.totalItems) {
-        flankdisplaycount = this.data.totalItems - 1;
         this.defaults.flankingItems = parseInt((this.data.totalItems - 1)/2);
     }
+    flankdisplaycount = (this.defaults.flankingItems * 2);
 
 
     for (var i = 1; i <= flankdisplaycount; i++, j = parseInt((i + 1) / 2)) {
@@ -173,7 +173,7 @@ swiperobin.prototype.preCalculatePositionProperties = function() {
     var middle = parseInt((this.data.calculations.length - 1) / 2);
     var mmax = middle + this.defaults.flankingItems;
     this.data.maxDistance = this.defaults.forcedImageWidth + (((this.defaults.forcedImageWidth * parseInt(this.data.calculations[mmax].distance) / 100) - (((1 - this.data.calculations[mmax].scale) / 2) * this.defaults.forcedImageWidth)) * 2);
-
+    console.log("flank"+this.defaults.flankingItems);
 };
 
 swiperobin.prototype.setupRobin = function(subsequent) {
@@ -312,7 +312,7 @@ swiperobin.prototype.reSize = function() {
     var cardw = this.defaults.forcedImageWidth/2;
     var maxObj = this.data.maxDistance;
     var maxRef = this.data.maxDistance;
-    var middle = parseInt(this.data.calculations.length - 1) / 2;
+    var middle = parseInt((this.data.calculations.length - 1) / 2);
     var flank = this.defaults.flankingItems;
 
     $.fn.resizeEnd = function(callback, timeout) {
@@ -330,12 +330,10 @@ swiperobin.prototype.reSize = function() {
     };
     // how to call it (with a 1000ms timeout):
     $(window).resizeEnd(function() {
-        console.log(middle);
-
         if ($(this).width() < maxObj) {
             var diff = maxObj - $(this).width();
             var percent = (diff / 1.5);
-            for (var i = middle + flank, j = (20*flank); i <= middle - flank; i--, j -=20) {
+            for (var i = middle - flank, j = (-20*flank); i <= middle + flank; i++, j +=20) {
                 if (i < middle)
                 {
                     if(parseInt(obj.data.calculations[i].distance)+percent > -10+j )
